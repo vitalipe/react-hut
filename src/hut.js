@@ -1,0 +1,4 @@
+
+
+
+ReactHut.createHut = function () {};
