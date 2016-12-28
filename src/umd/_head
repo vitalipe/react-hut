@@ -10,3 +10,4 @@
         factory((root.ReactHut = {}));
     }
 }(this, function (ReactHut) {
+"use strict";
