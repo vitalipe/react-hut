@@ -1,14 +1,17 @@
 {
   "name": "react-hut",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "",
   "main": "build.js",
+  "watch": {
+    "test": "{src,test}/*.js"
+  },
   "scripts": {
-    "test" : "node build.js dev && mocha --compilers .:test/_jsx-compiler.js test/spec.js",
-    "build-prod" : "node build.js prod",
-    "build-dev" : "node build.js dev",
-    "dist" : "node build.js dist"
-
+    "watch": "npm-watch",
+    "test": "node build.js dev && mocha --compilers .:test/_jsx-compiler.js test/spec.js",
+    "build-prod": "node build.js prod",
+    "build-dev": "node build.js dev",
+    "dist": "node build.js dist"
   },
   "author": "Vitali Perchonok",
   "license": "MIT",
@@ -17,6 +20,7 @@
     "enzyme": "^2.7.0",
     "mocha": "^3.2.0",
     "node-minify": "^2.0.2",
+    "npm-watch": "^0.1.7",
     "react": "^15.4.1",
     "react-addons-test-utils": "^15.4.1",
     "react-dom": "^15.4.1",
