@@ -1,4 +1,5 @@
 var compressor = require("node-minify");
+var fs = require("fs");
 
 function print(msg) {process.stdout.write(msg)}
 function done() {print("[done] \n")}
@@ -9,7 +10,7 @@ function concat() {
     return compressor.minify({
         compressor: "no-compress",
         input: ["src/umd/_head", "src/hut.js", "src/umd/_tail"],
-        output: "dist/hut.js"
+        output: "bin/react-hut.js"
     }).then(done);
 
 }
@@ -19,8 +20,8 @@ function compile() {
 
     return compressor.minify({
         compressor: "gcc",
-        input: "dist/hut.js",
-        output: "dist/hut.min.js",
+        input: "bin/react-hut.js",
+        output: "bin/react-hut.js",
         options: {
             compilation_level: "ADVANCED_OPTIMIZATIONS",
             language: "ECMASCRIPT5_STRICT"
@@ -28,6 +29,11 @@ function compile() {
     }).then(done);
 }
 
+function copy(from, to) {
+    print("copying...");
+    fs.writeFileSync(to, fs.readFileSync(from));
+    done();
+}
 
 
 var targets  = {
@@ -36,9 +42,14 @@ var targets  = {
         console.log("here be help");
     },
 
-    dev : function() {concat()},
-    production : function () {concat().then(compile)}
-
+    dev  : function() {concat()},
+    prod : function () {concat().then(compile)},
+    dist : function () {
+        concat()
+            .then(() => copy("./bin/react-hut.js", "./dist/react-hut.js"))
+            .then(compile)
+            .then(() => copy("./bin/react-hut.js", "./dist/react-hut.min.js"))
+    }
 
 };
 
