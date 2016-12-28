@@ -3,7 +3,11 @@ var reactHut = require("../bin/react-hut");
 var render = require("enzyme").render;
 var React = require("react");
 
-console.log(render(<div />).html());
+function verifyTree(result, expected) {
+        assert.equal(
+            render(<div className="test-wrapper-ignore-it">{result}</div>).html(),
+            render(<div className="test-wrapper-ignore-it">{expected}</div>).html());
+}
 
 describe("react-hut", () => {
 
@@ -19,7 +23,7 @@ describe("react-hut", () => {
         });
     });
 
-    describe("simple rendering", () => {
+    describe("single primitive rendering", () => {
         let H = reactHut.createHut(React, {});
 
         it("should return null when called without input or with null as input", () => {
@@ -32,12 +36,9 @@ describe("react-hut", () => {
 
         });
 
-        it("should render a single div", () => {
+        it("should render a single div without props", () => {
 
-            verifyHtml(H("div"), "<div></div>");
-
-            assert.isNull(H("div"));
-            assert.isNull(H(["div"]));
+            verifyTree(H("div"), <div></div>);
 
         });
 
