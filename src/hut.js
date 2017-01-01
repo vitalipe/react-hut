@@ -16,54 +16,89 @@ ReactHut.createHut = function (React, config) {
 
     var factory = React.createElement;
     var isResolved = React.isValidElement;
-    var isElementOrResolved = function (val) { return isResolved(val) || isComponentSpec(val)};
 
 
     return function () {
-        var args = (Array.isArray(arguments[0]) ? arguments[0] : arguments);
-        var fragment = args;
-        var resolved = [];
+        var args = (Array.isArray(arguments[0]) ? arguments[0] : Array.prototype.slice.call(arguments));
+        var stack = [args];
+
+        if (arguments.length > 3 || (Array.isArray(arguments[0]) && arguments.length > 1))
+            throw new Error("was expecting element, props & children or [element, props, children], got extra arguments!");
 
         if (!args[0])
             return null;
 
-        var i = 0;
-        while (i < fragment.length) {
-            var currentIndex = i;
-            var current = fragment[i];
-            var next = (i + 1 < fragment.length) ? fragment[i+1] : null;
-            var nextNext = (i + 2 < fragment.length) ? fragment[i+2] : null;
+        while (stack.length) {
+            var trackedStackSize = stack.length;
+            var fragment = stack[stack.length-1]; // peek
 
-            var props = null;
+            // unwrap nested arrays like: [[[[Element]]]]
+            while (Array.isArray(fragment[0]))
+                fragment = fragment[0];
+
+            // normalize element,props and children
+            var element  = fragment[0];
+            var props    = null;
             var children = null;
 
-
-            if (!isElementOrResolved(next)) {
-
-                if (isObject(next) || next === null)
-                    props = next;
+            // 2nd arg can be props of children...
+            if (fragment.length === 2) {
+                if (isObject(fragment[1]))
+                    props = fragment[1];
                 else
-                    children = next;
-
-                i++;
+                    children = fragment[1];
             }
 
-            if (!children && !isElementOrResolved(nextNext)) {
+            if (fragment.length === 3) {
+                props = fragment[1];
+                children = fragment[2];
+            }
 
-                if (Array.isArray(nextNext) || fragment.length === 3) {
-                    children = nextNext;
-                    i++;
+            // resolve children
+            if (Array.isArray(children))
+                for (var i = 0; i < children.length; i++) {
+                    var child = children[i];
+
+                    if (isResolved(child))
+                        continue;
+
+                    if (Array.isArray(child) && child.length > 0)
+                        if (isResolved(child[0]))
+                            children[i] = child[0];
+                        else
+                            stack.push(child);
+
+                    else if (isComponentSpec(child))
+                        children[i] = factory(child);
+
                 }
-            }
 
-            if (!isResolved(current))
-                current = fragment[currentIndex] = (factory(current, props, children));
 
-            resolved.push(current);
-            i++;
+            if (trackedStackSize !== stack.length)
+                continue; // an element can't be resolved before it's children
+
+
+            fragment = stack.pop();
+
+            // fragment might be a nested array that was unrolled..
+            // so let's make sure have the relevant data there...
+            fragment[0] = element;
+            fragment[1] = props;
+
+            while (fragment.length > 2)
+                fragment.pop();
+
+            if (Array.isArray(children))
+                fragment.push.apply(fragment, children);
+            else
+                fragment.push(children);
+
+
+            fragment[0] = factory.apply(null, fragment);
         }
 
-        return resolved.length === 1 ? resolved[0] : resolved;
+
+        return args[0];
     };
 
 };

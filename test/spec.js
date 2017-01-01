@@ -9,6 +9,12 @@ function verifyTree(result, expected) {
             render(<div className="test-wrapper-ignore-it">{expected}</div>).html());
 }
 
+let H = reactHut.createHut(React, {});
+let CustomElement = React.createClass({
+    render() { return <div className="custom">{this.props.value}</div>}
+});
+
+
 describe("react-hut", () => {
 
     describe(".createHut()", () => {
@@ -23,75 +29,74 @@ describe("react-hut", () => {
         });
     });
 
-    describe("single element rendering", () => {
-        let H = reactHut.createHut(React, {});
-        let CustomElement = React.createClass({
-            render() { return <div className="custom">{this.props.value}</div>}
-        });
+    describe("root element", () => {
 
         it("should return null when called without input or with null as input", () => {
-
             assert.isNull(H());
             assert.isNull(H(null));
 
             assert.isNull(H([]));
             assert.isNull(H([null]));
-
         });
 
-        it("should render a single primitive element without props", () => {
+        it("should render a root primitive  without props", () => {
             verifyTree(H("div"), <div/>);
-            verifyTree(H("div", {}), <div/>);
-            verifyTree(H("div", {}, []), <div/>);
-
-            verifyTree(H(CustomElement), <CustomElement/>);
-            verifyTree(H(CustomElement, {}), <CustomElement/>);
-            verifyTree(H(CustomElement, {}, []), <CustomElement/>);
-
+            verifyTree(H(["div"]), <div/>);
         });
 
-        it("should render any primitive element", () => {
+        it("should render a custom root element without props", () => {
+            verifyTree(H(CustomElement), <CustomElement/>);
+            verifyTree(H([CustomElement]), <CustomElement/>);
+        });
+
+        it("should render different primitive element", () => {
             verifyTree(H("div"), <div/>);
             verifyTree(H("i"), <i/>);
             verifyTree(H("button"), <button/>);
             verifyTree(H("h1"), <h1/>);
         });
 
-        it("should render a single element with props", () => {
-            verifyTree(H(CustomElement, {value : "demo"}, []), <CustomElement value="demo" />);
-            verifyTree(H("div", {className : "demo"}, []), <div className="demo" />);
-            verifyTree(H("div", {className : "demo"}), <div className="demo"/>);
+        it("should render root element with props", () => {
+            verifyTree(H([CustomElement, {value : "demo"}]), <CustomElement value="demo" />);
+        });
+
+        it("should render root element with props and children", () => {
+            verifyTree(H(
+                [
+                    CustomElement, {value : "demo"},
+                    [
+                        ["div", {}, []],
+                        ["div", {}, []]
+                    ]
+
+                ]), <CustomElement value="demo"><div /><div /></CustomElement>);
+        });
+
+        it("should render root element with children", () => {
+            verifyTree(H(
+                [
+                    CustomElement,
+                    [
+                        ["div", {}, []],
+                        ["div", {}, []]
+                    ]
+
+                ]), <CustomElement><div /><div /></CustomElement>);
         });
 
 
-        it("should accept a single element in an array", () => {
-            verifyTree(H(["div", {className : "demo"}]), <div className="demo"></div>);
-            verifyTree(H(["div"]), <div/>);
+        it("should accept a root element with props, without an array", () => {
+            verifyTree(H("div", {className : "demo"}), <div className="demo"></div>);
         });
 
-        it("should teat functions or strings in the same array as sibling elements", () => {
-            verifyTree(H(["div", "i", "h1", CustomElement]), [<div/>, <i/>, <h1 />, <CustomElement/>]);
+        it("should throw when root element is not inside an array and has > 3 args", () => {
+            assert.throws(() => H("div", {}, [], "invalid"));
         });
 
-
-        it("should return a single element when there is only one top component ", () => {
-            assert.isNotArray(H(["div"]));
-            assert.isNotArray(H(["div", {}]));
-            assert.isNotArray(H(["div", {}, [] ]));
-
-            assert.isNotArray(H("div"));
-            assert.isNotArray(H("div", {}));
-            assert.isNotArray(H("div", {}, [] ));
+        it("should throw when root element is inside an array and has > 1 args", () => {
+            assert.throws(() => H(["div", {}, []], "invalid"));
         });
 
     });
 
-    /**
-    describe("element with children rendering", () => {
-
-        it("should render element with props & a single child", () => {
-            verifyTree(H(["div", {}, ["div"]]), <div className="demo"><div></div></div>);
-        });
-
-    }); **/
 });
