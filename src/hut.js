@@ -25,6 +25,7 @@ ReactHut.createHut = function (React, config) {
         if (arguments.length > 3 || (Array.isArray(arguments[0]) && arguments.length > 1))
             throw new Error("was expecting element, props & children or [element, props, children], got extra arguments!");
 
+        // the special case where we want to return null form render...
         if (!args[0])
             return null;
 
@@ -63,7 +64,7 @@ ReactHut.createHut = function (React, config) {
                         continue;
 
                     if (Array.isArray(child) && child.length > 0)
-                        if (isResolved(child[0]))
+                        if (isResolved(child[0])) // was resolved?
                             children[i] = child[0];
                         else
                             stack.push(child);
@@ -71,6 +72,7 @@ ReactHut.createHut = function (React, config) {
                     else if (isComponentSpec(child))
                         children[i] = factory(child);
 
+                    // otherwise we don't care..
                 }
 
 
@@ -85,7 +87,8 @@ ReactHut.createHut = function (React, config) {
             fragment[0] = element;
             fragment[1] = props;
 
-            while (fragment.length > 2)
+            // remove children.. because we want to inline them
+            if (fragment.length > 2)
                 fragment.pop();
 
             if (Array.isArray(children))

@@ -85,6 +85,11 @@ describe("react-hut", () => {
         });
 
 
+        it("should render a deeply nested root element", () => {
+            verifyTree(H([[[[[[[[["div", {className : "demo"}]]]]]]]]]), <div className="demo"></div>);
+        });
+
+
         it("should accept a root element with props, without an array", () => {
             verifyTree(H("div", {className : "demo"}), <div className="demo"></div>);
         });
