@@ -183,7 +183,71 @@ describe("react-hut", () => {
                     <span className="two">two</span>
                 </div>);
         });
-
-
     });
+
+
+    describe("shorthand notation", () => {
+
+        it("should be possible to omit [] when a component does't have props or children ", () => {
+
+            verifyTree(H(["div", {className: "demo"}, [CustomElement, "div", "ul"] ]),
+
+                <div className="demo">
+                    <CustomElement /><div /><ul />
+                </div>);
+        });
+
+        it("should be possible to omit children  when a component does't have any ", () => {
+
+            verifyTree(H(["div", {className: "demo"},
+                    [[CustomElement, {value : "v"}] , ["div", {className : "foo"}], "ul"]
+                ]),
+
+                <div className="demo">
+                    <CustomElement value="v" /><div className="foo" /><ul />
+                </div>);
+        });
+
+
+        it("should be possible to omit props but still provide children", () => {
+
+            verifyTree(H([
+                    "div",
+                    [
+                        [CustomElement, {value : "v"}] ,
+                        ["div",
+                            [
+                                ["span", "value"]
+                            ]
+                        ]
+                    ]
+                ]),
+
+                <div>
+                    <CustomElement value="v" />
+                    <div>
+                        <span>value</span>
+                    </div>
+                </div>);
+        });
+
+        it("should be possible to mix shorthand notation with normal notation", () => {
+
+            verifyTree(H([
+                    "div", {className: "demo"},
+                    [
+                        "div",
+                        ["div", {className : "foo"}, []],
+                        ["h1", "title"],
+                        "span"
+                    ]
+                ]),
+
+                <div className="demo">
+                    <div /><div className="foo" /><h1>title</h1><span />
+                </div>);
+        });
+
+    })
+
 });
