@@ -34,15 +34,24 @@ ReactHut.createHut = function (React, config) {
             var fragment = stack[stack.length-1]; // peek
 
             // unwrap nested arrays like: [[[[Element]]]]
+            // fail on arrays like [[Element], "one", "two"]
             while (Array.isArray(fragment[0]))
-                fragment = fragment[0];
+                if (fragment.length > 1)
+                    if (fragment === args)
+                        throw new Error("multiple root elements is are not supported!");
+                    else
+                        throw new Error("received a list of deeply nested elements! this" +
+                            " is not supported in this version, use the spread operator(...)");
+                else
+                    fragment = fragment[0];
+
 
             // normalize element,props and children
             var element  = fragment[0];
             var props    = null;
             var children = null;
 
-            // 2nd arg can be props of children...
+            // 2nd arg can be props or children...
             if (fragment.length === 2) {
                 if (isObject(fragment[1]))
                     props = fragment[1];

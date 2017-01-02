@@ -149,6 +149,16 @@ describe("react-hut", () => {
         });
 
 
+        it("should throw when multiple root elements are provided", () => {
+            assert.throws(() => H(["h1"], ["h2"]));
+        });
+
+        it("should throw when a list of multiple nested children is provided", () => {
+            assert.throws(() => H(["div", [ [["span"], ["div"]] ] ]));
+            assert.throws(() => H(["div", [ "div", [["span"], ["div"]] ] ]));
+
+        });
+
     });
 
     describe("nested array components", () => {
@@ -161,7 +171,7 @@ describe("react-hut", () => {
             verifyTree(H([[[[[[[[["div", {className: "demo"}, []]]]]]]]]]), <div className="demo"></div>);
         });
 
-        it("should unpack deeply nested child elements", () => {
+        it("should unpack deeply nested single child elements", () => {
             verifyTree(H(["div", {className: "demo"}, [
 
                 ["span", {className : "one"}, "one"],
@@ -172,23 +182,6 @@ describe("react-hut", () => {
                     <span className="one">one</span>
                     <span className="two">two</span>
                 </div>);
-        });
-
-        it("should unpack multiple deeply nested child elements", () => {
-            verifyTree(H(["div", {className: "demo"}, [
-
-                ["span", {className : "one"}, "one"],
-                [[[[[
-                    ["span", { className : "two"}, "two"],
-                    ["span", { className : "three"}, "three"]
-                ]]]]]
-
-
-            ]]), <div className="demo">
-                <span className="one">one</span>
-                <span className="two">two</span>
-                <span className="three">three</span>
-            </div>);
         });
 
 
