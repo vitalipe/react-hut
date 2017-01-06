@@ -44,11 +44,11 @@ describe("react-hut", () => {
                 assert.isNull(H([null]));
             });
 
-            it("should render a root primitive  without props", () => {
+            it("should render a root primitive", () => {
                 verifyTree(H(["div", {}, []]), <div/>);
             });
 
-            it("should render a custom root element without props", () => {
+            it("should render a custom root element", () => {
                 verifyTree(H([CustomElement]), <CustomElement/>);
             });
 
@@ -78,22 +78,6 @@ describe("react-hut", () => {
                 </CustomElement>);
             });
 
-            it("should render root element with children", () => {
-                verifyTree(H(
-                    [
-                        CustomElement,
-                        [
-                            ["div", {}, []],
-                            ["div", {}, []]
-                        ]
-
-                    ]), <CustomElement>
-                    <div />
-                    <div />
-                </CustomElement>);
-            });
-
-
             it("should render child elements", () => {
                 verifyTree(H(
                     [
@@ -108,6 +92,36 @@ describe("react-hut", () => {
                         <div className="content"/>
                     </CustomElement>);
 
+            });
+
+            it("should not fuck with children that are not arrays", () => {
+                verifyTree(H(
+                    [
+                        CustomElement, {},
+                        [
+                            "I'm a simple string ",
+                            "answer is: ",
+                            42
+                        ]
+
+                    ]), <CustomElement>{["I'm a simple string ", "answer is: ", 42]}</CustomElement>);
+            });
+
+            it("should be possible to mix literals with child components", () => {
+                verifyTree(H(
+                    [
+                        CustomElement, {},
+                        [
+                            ["span", {className : "s1"}],
+                            "I'm a simple string ",
+                            "answer is: ",
+                            42,
+                            ["span", {className : "s2"}]
+                        ]
+
+                    ]), <CustomElement>
+                        <span className="s1" />{["I'm a simple string ", "answer is: ", 42]}<span className="s2" />
+                    </CustomElement>);
             });
 
             it("should render deeply nested child elements", () => {
@@ -143,28 +157,31 @@ describe("react-hut", () => {
 
             })
 
+            it("should render a list of elements and return an array", () => {
+                var list = H([
+                    ["div", {className : "d1"}, []],
+                    ["div", {className : "d2"}, [["span"]]]
+                ]);
 
+                assert.lengthOf(list, 2);
+                verifyTree(list[0], <div className="d1" />);
+                verifyTree(list[0], <div className="d2"><span /></div>);
+            });
         });
 
         describe("invalid input", () => {
 
-            it("should throw when root element is not inside an array and has > 3 args", () => {
+            it("should throw when root element has > 3 args", () => {
                 assert.throws(() => H("div", {}, [], "invalid"));
+                assert.throws(() => H(["div", {}, [], "invalid"]));
             });
 
-            it("should throw when root element is inside an array and has > 1 args", () => {
-                assert.throws(() => H(["div", {}, []], "invalid"));
-            });
-
-
-            it("should throw when multiple root elements are provided", () => {
-                assert.throws(() => H(["h1"], ["h2"]));
-            });
-
-            it("should throw when a list of multiple nested children is provided", () => {
-                assert.throws(() => H(["div", [[["span"], ["div"]]]]));
-                assert.throws(() => H(["div", ["div", [["span"], ["div"]]]]));
-
+            it("should throw when a deeply nested element fragment has > 3 args", () => {
+                assert.throws(() => H(["div", {},
+                    [
+                        ["div", {}, [], "invalid", "extra", "args"]
+                    ]
+                ]));
             });
 
         });
@@ -191,23 +208,42 @@ describe("react-hut", () => {
                     <span className="two">two</span>
                 </div>);
             });
-        });
 
+            it("should unpack deeply nested multi child elements", () => {
+                verifyTree(H(["div", {className: "demo"}, [
+
+                    ["span", {className: "one"}, "one"],
+                    [[[[[["span", {className: "two"}, "two"]]]]]],
+                    [[["div"], ["span"]], [[[[["span", {className: "two"}, "two"]]]]]]
+
+                ]]), <div className="demo">
+                    <span className="one">one</span>
+                    <div />
+                    <span />
+                    <span className="two">two</span>
+                </div>);
+            });
+        });
 
         describe("shorthand notation", () => {
 
-            it("should be possible to omit [] when a component does't have props or children ", () => {
+            it("should be possible to omit children & props ", () => {
 
-                verifyTree(H(["div", {className: "demo"}, [CustomElement, "div", "ul"]]),
+                verifyTree(H(
+                    ["div", {className: "demo"},
+                        [
+                            [CustomElement], ["ul"]
+                        ]
+                    ]),
 
                     <div className="demo">
                         <CustomElement />
-                        <div />
                         <ul />
                     </div>);
             });
 
-            it("should be possible to omit children  when a component does't have any ", () => {
+
+            it("should be possible to omit children", () => {
 
                 verifyTree(H(["div", {className: "demo"},
                         [[CustomElement, {value: "v"}], ["div", {className: "foo"}], "ul"]
@@ -220,6 +256,12 @@ describe("react-hut", () => {
                     </div>);
             });
 
+            it("should also work on root element", () => {
+                verifyTree(H("div"), <div/>)
+                verifyTree(H("div", ["string literal"]), <div>string literal</div>)
+                verifyTree(H("div", {className : "foo"}), <div className="foo"/>)
+                verifyTree(H("div", {className : "foo"}, ["string literal"]), <div className="foo">string literal</div>)
+            });
 
             it("should be possible to omit props but still provide children", () => {
 
@@ -248,10 +290,10 @@ describe("react-hut", () => {
                 verifyTree(H([
                         "div", {className: "demo"},
                         [
-                            "div",
+                            ["div"],
                             ["div", {className: "foo"}, []],
                             ["h1", "title"],
-                            "span"
+                            ["span"]
                         ]
                     ]),
 
