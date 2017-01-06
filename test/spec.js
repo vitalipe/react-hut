@@ -243,23 +243,6 @@ describe("react-hut", () => {
                     </div>);
             });
 
-
-            it("should be possible to pass root component directly", () => {
-                verifyTree(H("h1"), <h1 />);
-            });
-
-            it("should be possible to pass root component with props directly", () => {
-                verifyTree(H("h1", {className : "demo"}), <h1 className="demo"/>);
-            });
-
-            it("should be possible to pass root component with children directly", () => {
-                verifyTree(H("h1", "title"), <h1>title</h1>);
-            });
-
-            it("should be possible to pass root component with props & children directly", () => {
-                verifyTree(H("h1", {className : "demo"}, "title"), <h1 className="demo">title</h1>);
-            });
-
             it("should be possible to mix shorthand notation with normal notation", () => {
 
                 verifyTree(H([
@@ -278,80 +261,7 @@ describe("react-hut", () => {
                         <h1>title</h1><span />
                     </div>);
             });
-        });
 
-        describe(".spread()", () => {
-
-            it("should be a function attached to any hut context", () => {
-                assert.isFunction(H.spread);
-            });
-
-            it("should be possible to render a list of multiple nested children with spread", () => {
-
-                verifyTree(
-                    H([
-                        "div", [
-                            "h1",
-                            H.spread(["span", ["div"]]),
-                            "h2",
-                            H.spread([["span"], ["div"]]),
-                        ]
-                    ]),
-                    <div><h1/><span /><div /><h2/><span/><div/></div>);
-            });
-
-            it("should be possible to use spread on 2nd level of nested children", () => {
-
-                verifyTree(
-                    H([
-                        "div", [
-                            ["div", [H.spread([["h1", "title1"], ["h2", "title2"]])]],
-                        ]
-                    ]),
-
-                    <div>
-                        <div>
-                            <h1>title1</h1>
-                            <h2>title2</h2>
-                        </div>
-                    </div>);
-            });
-
-            it("should be possible to use spread deeply nested arrays", () => {
-
-                verifyTree(
-                    H([
-                        "div", [
-                            ["div", [[[[[[H.spread([["h1", "title1"], ["h2", "title2"]])]]]]]]],
-                        ]
-                    ]),
-
-                    <div>
-                        <div>
-                            <h1>title1</h1>
-                            <h2>title2</h2>
-                        </div>
-                    </div>);
-            });
-
-            it("should map when a function is provided as 2nd arg", () => {
-
-                verifyTree(
-                    H([
-                        "div",
-                        [
-                            H.spread(["i", "div", "span"], (n, i) => [n, {className : "c"+(i+1) }])
-                        ]
-                    ]),
-
-                    <div>
-                        <i     className="c1"/>
-                        <div   className="c2"/>
-                        <span  className="c3"/>
-                    </div>);
-            });
-
-
-        });
+        })
     });
 });
