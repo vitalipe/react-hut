@@ -34,7 +34,8 @@ describe("react-hut", () => {
             </div>}
         });
 
-        describe("simple rendering", () => {
+        describe("#simple rendering", () => {
+
 
             it("should return null when called without input or with null as input", () => {
                 assert.isNull(H());
@@ -139,7 +140,7 @@ describe("react-hut", () => {
 
                             [":div", {className: "content"},
                                 [
-                                    ["label", {}, "content"]
+                                    [":label", {}, "content"]
                                 ]
                             ]
                         ]
@@ -159,16 +160,19 @@ describe("react-hut", () => {
 
             it("should render a list of elements and return an array", () => {
                 var list = H(
-                    [
-                        [":div", {className : "d1"}, []],
-                        [":div", {className : "d2"}, [[":span"]]
-                    ]
-                ]);
 
+                        [":div", {className : "d1"}, []],
+                        [":div", {className : "d2"}, [[":span"]]]
+
+                );
+
+                assert.isArray(list);
                 assert.lengthOf(list, 2);
+
                 verifyTree(list[0], <div className="d1" />);
-                verifyTree(list[0], <div className="d2"><span /></div>);
+                verifyTree(list[1], <div className="d2"><span /></div>);
             });
+
         });
 
         describe("invalid input", () => {
@@ -188,7 +192,7 @@ describe("react-hut", () => {
 
         });
 
-        describe("nested array components", () => {
+        describe("#nested array components", () => {
 
             it("should unpack nested root elements", () => {
                 verifyTree(H([[":div", {className: "demo"}, []]]), <div className="demo"></div>);
@@ -199,30 +203,46 @@ describe("react-hut", () => {
             });
 
             it("should unpack deeply nested single child elements", () => {
-                verifyTree(H([":div", {className: "demo"}, [
-
-                    [":span", {className: "one"}, "one"],
-                    [[[[[[":span", {className: "two"}, "two"]]]]]]
-
-
-                ]]), <div className="demo">
+                verifyTree(H(
+                    [":div", {className: "demo"},
+                        [
+                            [":span", {className: "one"}, "one"],
+                            [[[[[[":span", {className: "two"}, "two"]]]]]]
+                        ]
+                    ]
+                ), <div className="demo">
                     <span className="one">one</span>
                     <span className="two">two</span>
                 </div>);
             });
 
             it("should unpack deeply nested multi child elements", () => {
-                verifyTree(H([":div", {className: "demo"}, [
+                verifyTree(H(
+                    [":div", {className: "demo"},
+                        [
 
-                    [":span", {className: "one"}, "one"],
-                    [[[[[[":span", {className: "two"}, "two"]]]]]],
-                    [[[":div"], [":span"]], [[[[[":span", {className: "two"}, "two"]]]]]]
+                            [":span", {className: "one"}, "one"],
+                            [[[[[
+                                [":span", {className: "two"}, "two"]
+                            ]]]]],
 
-                ]]), <div className="demo">
+                            [
+                                [
+                                    [":div"], [":span"]
+                                ],
+                                [[[[
+                                    [":span", {className: "three"}, "3"]
+                                ]]]]
+                            ]
+
+                        ]
+                    ]
+                ), <div className="demo">
                     <span className="one">one</span>
+                    <span className="two">two</span>
                     <div />
                     <span />
-                    <span className="two">two</span>
+                    <span className="three">3</span>
                 </div>);
             });
 
@@ -231,7 +251,7 @@ describe("react-hut", () => {
                 verifyTree(H([":div", {className: "demo"}, [
 
                     [":span", {className: "one"}, "one"],
-                    [["raw", "data", "string"]]
+                    [["raw", " ", "data", " ", "string"]]
 
                 ]]), <div className="demo">
                     <span className="one">one</span>
@@ -240,12 +260,18 @@ describe("react-hut", () => {
             });
 
             it("should still parse mixed nested data that looks like a component", () => {
-                verifyTree(H([":div", {className: "demo"}, [
+                verifyTree(H(
+                    [":div", {className: "demo"},
+                        [
+                            [":span", {className: "one"}, "one"],
+                            [
+                                ["raw", " ", "data", " ", "string"],
+                                [":ul", {className : "with-child"}, [[":li"]]]
+                            ]
+                        ]
+                    ]
 
-                    [":span", {className: "one"}, "one"],
-                    [["raw", "data", "string", [":ul", {className : "with-child"}, [":li"]]]]
-
-                ]]), <div className="demo">
+                ), <div className="demo">
                     <span className="one">one</span>
                     raw data string
                     <ul className="with-child">
@@ -275,8 +301,14 @@ describe("react-hut", () => {
 
             it("should be possible to omit children", () => {
 
-                verifyTree(H([":div", {className: "demo"},
-                        [[CustomElement, {value: "v"}], [":div", {className: "foo"}], "ul"]
+                verifyTree(H(
+                    [":div", {className: "demo"},
+                        [
+                            [CustomElement, {value: "v"}],
+                            [":div", {className: "foo"}],
+                            [":ul"]
+                        ]
+
                     ]),
 
                     <div className="demo">
