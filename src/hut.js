@@ -3,10 +3,6 @@ function isObject(val) {
     return val != null && typeof val === 'object' && Array.isArray(val) === false;
 }
 
-function isComponentSpec(val) {
-    return (typeof val === "function" || typeof val === "string");
-}
-
 
 ReactHut.createHut = function (React, config) {
     config = (config || {});
@@ -16,103 +12,98 @@ ReactHut.createHut = function (React, config) {
 
     var factory = React.createElement;
     var isResolved = React.isValidElement;
+    var delimiter  = ":";
 
 
-    return function () {
-        var args = (Array.isArray(arguments[0]) ? arguments[0] : Array.prototype.slice.call(arguments));
-        var stack = [args];
-
-        if (arguments.length > 3 || (Array.isArray(arguments[0]) && arguments.length > 1))
-            throw new Error("was expecting element, props & children or [element, props, children], got extra arguments!");
-
-        // the special case where we want to return null form render...
-        if (!args[0])
-            return null;
-
-        while (stack.length) {
-            var trackedStackSize = stack.length;
-            var fragment = stack[stack.length-1]; // peek
-
-            // unwrap nested arrays like: [[[[Element]]]]
-            // fail on arrays like [[Element], "one", "two"]
-            while (Array.isArray(fragment[0]))
-                if (fragment.length > 1)
-                    if (fragment === args)
-                        throw new Error("multiple root elements is are not supported!");
-                    else
-                        throw new Error("received a list of deeply nested elements! this" +
-                            " is not supported in this version, use the spread operator(...)");
-                else
-                    fragment = fragment[0];
-
-
-            // normalize element,props and children
-            var element  = fragment[0];
-            var props    = null;
-            var children = null;
-
-            // 2nd arg can be props or children...
-            if (fragment.length === 2) {
-                if (isObject(fragment[1]))
-                    props = fragment[1];
-                else
-                    children = fragment[1];
-            }
-
-            if (fragment.length === 3) {
-                props = fragment[1];
-                children = fragment[2];
-            }
-
-            // resolve children
-            if (Array.isArray(children))
-                for (var i = 0; i < children.length; i++) {
-                    var child = children[i];
-
-                    if (isResolved(child))
-                        continue;
-
-                    if (Array.isArray(child) && child.length > 0)
-                        if (isResolved(child[0])) // was resolved?
-                            children[i] = child[0];
-                        else
-                            stack.push(child);
-
-                    else if (isComponentSpec(child))
-                        children[i] = factory(child);
-
-                    // otherwise we don't care..
-                }
-
-
-            if (trackedStackSize !== stack.length)
-                continue; // an element can't be resolved before it's children
-
-
-            fragment = stack.pop();
-
-            // fragment might be a nested array that was unrolled..
-            // so let's make sure have the relevant data there...
-            fragment[0] = element;
-            fragment[1] = props;
-
-            // remove children.. because we want to inline them
-            if (fragment.length > 2)
-                fragment.pop();
-
-            if (Array.isArray(children))
-                fragment.push.apply(fragment, children);
-            else
-                fragment.push(children);
-
-
-            fragment[0] = factory.apply(null, fragment);
-        }
-
-
-        return args[0];
+    var isComponentSpec = function(val) {
+        return (typeof val === "function" || (typeof val === "string" && val[0] === delimiter));
     };
 
+    var reslove = function (fragment) {
+        var i, element;
+        var props = null;
+        var children = null;
+        var args = [];
+
+        if (!Array.isArray(fragment))
+            return fragment;
+
+        while (fragment.length === 1 && Array.isArray(fragment[0]))
+            fragment = fragment[0];
+
+        if (fragment.length < 1 || fragment[0] === null)
+            return null;
+
+        if (!isComponentSpec(fragment[0]))
+            return fragment.map(reslove);
+
+        if (fragment.length > 3)
+            throw new Error("got: " + fragment.length + " args, as a child spec, that's not supported!");
+
+
+        switch (fragment.length) {
+            case 1:
+                if (isResolved(fragment[0]) || fragment[0] === null)
+                    return fragment[0];
+                else if (Array.isArray(fragment[0]))
+                    return reslove.apply(null, fragment[0]);
+
+                element = fragment[0];
+                break;
+
+            case 2:
+                if (isObject(fragment[1])) {
+                    element  = fragment[0];
+                    props    = fragment[1];
+                } else {
+                    element  = fragment[0];
+                    children = fragment[1];
+                }
+
+                break;
+
+            case 3:
+                element  = fragment[0];
+                props    = fragment[1];
+                children = fragment[2];
+                break;
+        }
+
+        // resolve children
+        if (Array.isArray(children))
+            for (i = 0; i < children.length; i++)
+                children[i] = reslove(children[i]);
+
+
+        // flatten children so that we don't get warnings all the time...
+        args[0] = (element[0] === delimiter ? element.slice(1) : element);
+        args[1] = props;
+
+        if (Array.isArray(children))
+            args.push.apply(args, children);
+        else
+            args.push(children);
+
+        return factory.apply(React, args);
+    };
+
+    return function () {
+        var args = Array.prototype.slice.call(arguments);
+
+        while (args.length === 1 && Array.isArray(args[0]))
+            args = args[0];
+
+        if(!args.length)
+            return null;
+
+        if (!Array.isArray(args[0]))
+            return reslove(args);
+
+        for (var i = 0; i < args.length; i++)
+            args[i] = reslove(args[i]);
+
+        return args;
+    };
 };
 
 
