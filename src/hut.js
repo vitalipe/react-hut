@@ -10,6 +10,7 @@ ReactHut.createHut = function (React, config) {
     if (!React || !React.createElement || !React.isValidElement)
         throw new Error("first arg must be React!");
 
+    var transform = (config.transform || null);
     var factory = React.createElement;
     var isResolved = React.isValidElement;
     var delimiter  = ":";
@@ -69,16 +70,19 @@ ReactHut.createHut = function (React, config) {
                 break;
         }
 
+        if (transform)
+            transform([element, props, children]);
+
         // resolve children
         if (Array.isArray(children))
             for (i = 0; i < children.length; i++)
                 children[i] = reslove(children[i]);
 
 
-        // flatten children so that we don't get warnings all the time...
         args[0] = (element[0] === delimiter ? element.slice(1) : element);
         args[1] = props;
 
+        // flatten children so that we don't get warnings all the time...
         if (Array.isArray(children))
             args.push.apply(args, children);
         else

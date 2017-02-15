@@ -1,7 +1,11 @@
-var assert = require("chai").assert;
+var chai = require("chai");
 var reactHut = require("../bin/react-hut");
 var render = require("enzyme").render;
 var React = require("react");
+var sinon = require("sinon");
+
+sinon.assert.expose(chai.assert, { prefix: "" });
+var assert = chai.assert;
 
 function verifyTree(result, expected) {
         assert.equal(
@@ -368,4 +372,63 @@ describe("react-hut", () => {
 
         })
     });
+
+    describe("#component transform", () => {
+
+        it("should be called for each component", () => {
+            let transform = sinon.stub();
+            let H = reactHut.createHut(React, { transform : transform});
+
+            H([":div",
+                [
+                    [":ul", [
+                        [":li"],
+                        [":li"],
+                        [":li"]
+                    ]]
+                ]
+            ]);
+
+            assert.callCount(transform, 5);
+        });
+
+        describe("#transform function args", () => {
+
+            it("should be called with the component, props & children in as single array argument", () => {
+                let transform = sinon.stub();
+                let H = reactHut.createHut(React, {transform: transform});
+
+                H(":div", {k: "v"}, ["hello"]);
+
+                assert.calledWith(transform, [":div", {k: "v"}, ["hello"]]);
+            });
+
+            it("missing props should be passed ass null", () => {
+                let transform = sinon.stub();
+                let H = reactHut.createHut(React, {transform: transform});
+
+                H(":div", ["raw..."]);
+
+                assert.calledWith(transform, [":div", null, ["raw..."]]);
+            });
+
+            it("missing children should be passed ass null", () => {
+                let transform = sinon.stub();
+                let H = reactHut.createHut(React, {transform: transform});
+
+                H(":div", {works: true});
+
+                assert.calledWith(transform, [":div", {works: true}, null]);
+            });
+
+            it("missing children & props should be passed ass 2 null args", () => {
+                let transform = sinon.stub();
+                let H = reactHut.createHut(React, {transform: transform});
+
+                H(":div");
+
+                assert.calledWith(transform, [":div", null, null]);
+            });
+        });
+    })
 });
