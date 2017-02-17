@@ -4,9 +4,14 @@ function isObject(val) {
 }
 
 
-function stripDelimiter(element) {
-    return (element[0] === ":" ? element.slice(1) : element);
+function stripMarkChar(element) {
+    return (typeof element === "string") ? element.slice(1) : element;
 }
+
+function isComponentSpec(val) {
+    return (typeof val === "function" || (typeof val === "string" && val[0] === ":"));
+}
+
 
 function resolveChildren(children, resolver) {
     if (!Array.isArray(children))
@@ -14,6 +19,13 @@ function resolveChildren(children, resolver) {
 
     for (var i = 0; i < children.length; i++)
         children[i] = resolver(children[i]);
+}
+
+function flattenChildren(fragment) {
+    if (!Array.isArray(fragment[2]))
+        return;
+
+    fragment.push.apply(fragment, fragment.pop());
 }
 
 function resolveComponentTransform(fragment, transform) {
@@ -44,13 +56,8 @@ ReactHut.createHut = function (React, config) {
     var factory = React.createElement;
     var isResolved = React.isValidElement;
 
-    var isComponentSpec = function(val) {
-        return (typeof val === "function" || (typeof val === "string" && val[0] === ":"));
-    };
-
     var resolve = function (fragment) {
         var spec = [null, null, null];
-        var args = [];
 
         if (!Array.isArray(fragment))
             return fragment;
@@ -70,12 +77,15 @@ ReactHut.createHut = function (React, config) {
 
         switch (fragment.length) {
             case 1:
+
                 if (isResolved(fragment[0]) || fragment[0] === null)
                     return fragment[0];
+
                 else if (Array.isArray(fragment[0]))
                     return resolve.apply(null, fragment[0]);
 
                 spec[0] = fragment[0];
+
                 break;
 
             case 2:
@@ -90,9 +100,7 @@ ReactHut.createHut = function (React, config) {
                 break;
 
             case 3:
-                spec[0]  = fragment[0];
-                spec[1]  = fragment[1];
-                spec[2]  = fragment[2];
+                spec = fragment;
                 break;
         }
 
@@ -100,16 +108,11 @@ ReactHut.createHut = function (React, config) {
         spec = resolveComponentTransform(spec, transform);
         resolveChildren(spec[2], resolve);
 
-        args[0] = stripDelimiter(spec[0]);
-        args[1] = spec[1];
 
-        // flatten children so that we don't get warnings all the time...
-        if (Array.isArray(spec[2]))
-            args.push.apply(args, spec[2]);
-        else
-            args.push(spec[2]);
+        spec[0] = stripMarkChar(spec[0]);
+        flattenChildren(spec);
 
-        return factory.apply(React, args);
+        return factory.apply(React, spec);
     };
 
     return function () {

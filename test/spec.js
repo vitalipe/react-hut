@@ -13,6 +13,9 @@ function verifyTree(result, expected) {
             render(<div className="test-wrapper-ignore-it">{expected}</div>).html());
 }
 
+function willVerifyEqual(expected) {
+    return (arg) =>  assert.deepEqual(arg, expected);
+}
 
 
 describe("react-hut", () => {
@@ -395,48 +398,38 @@ describe("react-hut", () => {
         describe("#transform function args", () => {
 
             it("should be called with the component, props & children in a single array argument", () => {
-                let transform = sinon.stub();
+                let transform = willVerifyEqual([":div", {k: "v"}, ["hello"]]);
                 let H = reactHut.createHut(React, {transform: transform});
 
                 H(":div", {k: "v"}, ["hello"]);
-
-                assert.calledWith(transform, [":div", {k: "v"}, ["hello"]]);
             });
 
             it("missing props should be passed ass null", () => {
-                let transform = sinon.stub();
+                let transform = willVerifyEqual([":div", null, ["raw..."]]);
                 let H = reactHut.createHut(React, {transform: transform});
 
                 H(":div", ["raw..."]);
-
-                assert.calledWith(transform, [":div", null, ["raw..."]]);
             });
 
             it("missing children should be passed ass null", () => {
-                let transform = sinon.stub();
+                let transform = willVerifyEqual([":div", {works: true}, null]);
                 let H = reactHut.createHut(React, {transform: transform});
 
                 H(":div", {works: true});
-
-                assert.calledWith(transform, [":div", {works: true}, null]);
             });
 
             it("missing children & props should be passed ass 2 null args", () => {
-                let transform = sinon.stub();
+                let transform = willVerifyEqual([":div", null, null]);
                 let H = reactHut.createHut(React, {transform: transform});
 
                 H(":div");
-
-                assert.calledWith(transform, [":div", null, null]);
             });
 
             it("missing children & props should be passed ass 2 null args", () => {
-                let transform = sinon.stub();
+                let transform = willVerifyEqual([":header", null, null]);
                 let H = reactHut.createHut(React, {transform: transform});
 
-                H(":div");
-
-                assert.calledWith(transform, [":div", null, null]);
+                H(":header");
             });
 
             it("should be possible apply transformation by returning a new array", () => {
