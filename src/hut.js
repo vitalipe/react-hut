@@ -4,10 +4,6 @@ function isObject(val) {
 }
 
 
-function stripMarkChar(element) {
-    return (typeof element === "string") ? element.slice(1) : element;
-}
-
 function isComponentSpec(val) {
     return (typeof val === "function" || (typeof val === "string" && val[0] === ":"));
 }
@@ -21,12 +17,6 @@ function resolveChildren(children, resolver) {
         children[i] = resolver(children[i]);
 }
 
-function flattenChildren(fragment) {
-    if (!Array.isArray(fragment[2]))
-        return;
-
-    fragment.push.apply(fragment, fragment.pop());
-}
 
 ReactHut.createHut = function (React, config) {
     config = (config || {});
@@ -101,8 +91,12 @@ ReactHut.createHut = function (React, config) {
         resolveChildren(spec[2], resolve);
 
 
-        spec[0] = stripMarkChar(spec[0]);
-        flattenChildren(spec);
+        if (typeof spec[0] === "string")
+            spec[0] = spec[0].slice(1);
+
+        if (Array.isArray(spec[2]))
+            spec.push.apply(spec, spec.pop());
+
 
         return factory.apply(React, spec);
     };
