@@ -28,15 +28,6 @@ function flattenChildren(fragment) {
     fragment.push.apply(fragment, fragment.pop());
 }
 
-function resolveComponentTransform(fragment, transform) {
-
-    if (!transform)
-        return fragment;
-
-    return transform(fragment) || fragment;
-}
-
-
 ReactHut.createHut = function (React, config) {
     config = (config || {});
 
