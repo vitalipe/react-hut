@@ -3,6 +3,31 @@ function isObject(val) {
     return val != null && typeof val === 'object' && Array.isArray(val) === false;
 }
 
+function resolveChildren(children, resolver) {
+    if (!Array.isArray(children))
+        return;
+
+    for (var i = 0; i < children.length; i++)
+        children[i] = resolver(children[i]);
+}
+
+function resolveComponentTransform(fragment, transform) {
+    var transformed;
+
+    if (!transform)
+        return fragment;
+
+    transformed = transform(fragment);
+
+    if (!transformed)
+        return fragment;
+
+    if (!Array.isArray(transformed))
+        throw new Error("component transform should return an array or nothing, got: " + typeof transformed);
+
+    return transformed;
+}
+
 
 ReactHut.createHut = function (React, config) {
     config = (config || {});
@@ -24,6 +49,7 @@ ReactHut.createHut = function (React, config) {
         var i, element;
         var props = null;
         var children = null;
+        var spec = [null, null, null];
         var args = [];
 
         if (!Array.isArray(fragment))
@@ -70,23 +96,22 @@ ReactHut.createHut = function (React, config) {
                 break;
         }
 
-        if (transform)
-            transform([element, props, children]);
-
-        // resolve children
-        if (Array.isArray(children))
-            for (i = 0; i < children.length; i++)
-                children[i] = reslove(children[i]);
+        spec[0] = element;
+        spec[1] = props;
+        spec[2] = children;
 
 
-        args[0] = (element[0] === delimiter ? element.slice(1) : element);
-        args[1] = props;
+        spec = resolveComponentTransform(spec, transform);
+        resolveChildren(spec[2], reslove);
+
+        args[0] = (spec[0][0] === delimiter ? spec[0].slice(1) : spec[0]);
+        args[1] = spec[1];
 
         // flatten children so that we don't get warnings all the time...
-        if (Array.isArray(children))
-            args.push.apply(args, children);
+        if (Array.isArray(spec[2]))
+            args.push.apply(args, spec[2]);
         else
-            args.push(children);
+            args.push(spec[2]);
 
         return factory.apply(React, args);
     };

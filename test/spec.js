@@ -394,7 +394,7 @@ describe("react-hut", () => {
 
         describe("#transform function args", () => {
 
-            it("should be called with the component, props & children in as single array argument", () => {
+            it("should be called with the component, props & children in a single array argument", () => {
                 let transform = sinon.stub();
                 let H = reactHut.createHut(React, {transform: transform});
 
@@ -429,6 +429,52 @@ describe("react-hut", () => {
 
                 assert.calledWith(transform, [":div", null, null]);
             });
+
+            it("missing children & props should be passed ass 2 null args", () => {
+                let transform = sinon.stub();
+                let H = reactHut.createHut(React, {transform: transform});
+
+                H(":div");
+
+                assert.calledWith(transform, [":div", null, null]);
+            });
+
+            it("should be possible apply transformation by returning a new array", () => {
+                let transform = () => [":div", {className : "moo"}, "mooo!"];
+                let H = reactHut.createHut(React, {transform: transform});
+
+                verifyTree(H(":span", {style : {}}, []), <div className="moo">mooo!</div>);
+            });
+
+            it("should be possible apply transformation by altering the param", () => {
+                let transform = (fragment) => {
+                    fragment[0] = ":div";
+                    fragment[1] = {className : "moo"};
+                    fragment[2] = "mooo!";
+                };
+
+                let H = reactHut.createHut(React, {transform: transform});
+
+                verifyTree(H(":span", {style : {}}, []), <div className="moo">mooo!</div>);
+            });
+
+            it("should throw an error when a transformation returns a thruthy non array value", () => {
+                let transform = sinon.stub();
+                let H = reactHut.createHut(React, {transform: transform});
+
+                transform.returns(true);
+                assert.throws(() => H(":span", {style : {}}, []), Error);
+
+                transform.returns(42);
+                assert.throws(() => H(":span", {style : {}}, []), Error);
+
+                transform.returns({});
+                assert.throws(() => H(":span", {style : {}}, []), Error);
+
+                transform.returns("component");
+                assert.throws(() => H(":span", {style : {}}, []), Error);
+            });
+            
         });
     })
 });
