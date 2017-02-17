@@ -421,6 +421,24 @@ describe("react-hut", () => {
             verifyTree(H(":crap", {style : {}}, []), <div className="resolved" />);
         });
 
+        it("should be possible to modify children before they are resolved", () => {
+            let transform = ([e, p, children]) => (children || []).forEach(c => { if (c[0] === ":fake") c[0] = ":li" });
+            let H = reactHut.createHut(React, {transform: transform});
+
+
+            verifyTree(H(
+                ":ul", [
+                    [":fake"],
+                    [":fake"],
+                    [":fake"]
+                ]), <ul>
+                <li />
+                <li />
+                <li />
+            </ul>);
+
+        });
+
 
         it("should throw an error when a transformation returns a thruthy non array value", () => {
             let transform = sinon.stub();
@@ -449,28 +467,28 @@ describe("react-hut", () => {
                 H(":div", {k: "v"}, ["hello"]);
             });
 
-            it("missing props should be passed ass null", () => {
+            it("missing props should be passed as null", () => {
                 let transform = willVerifyEqual([":div", null, ["raw..."]]);
                 let H = reactHut.createHut(React, {transform: transform});
 
                 H(":div", ["raw..."]);
             });
 
-            it("missing children should be passed ass null", () => {
+            it("missing children should be passed as null", () => {
                 let transform = willVerifyEqual([":div", {works: true}, null]);
                 let H = reactHut.createHut(React, {transform: transform});
 
                 H(":div", {works: true});
             });
 
-            it("missing children & props should be passed ass 2 null args", () => {
+            it("missing children & props should be passed as 2 null args", () => {
                 let transform = willVerifyEqual([":div", null, null]);
                 let H = reactHut.createHut(React, {transform: transform});
 
                 H(":div");
             });
 
-            it("missing children & props should be passed ass 2 null args", () => {
+            it("missing children & props should be passed as 2 null args", () => {
                 let transform = willVerifyEqual([":header", null, null]);
                 let H = reactHut.createHut(React, {transform: transform});
 
