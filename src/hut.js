@@ -45,7 +45,7 @@ ReactHut.createHut = function (React, config) {
         return (typeof val === "function" || (typeof val === "string" && val[0] === delimiter));
     };
 
-    var reslove = function (fragment) {
+    var resolve = function (fragment) {
         var i, element;
         var props = null;
         var children = null;
@@ -62,7 +62,7 @@ ReactHut.createHut = function (React, config) {
             return null;
 
         if (!isComponentSpec(fragment[0]))
-            return fragment.map(reslove);
+            return fragment.map(resolve);
 
         if (fragment.length > 3)
             throw new Error("got: " + fragment.length + " args, as a child spec, that's not supported!");
@@ -73,7 +73,7 @@ ReactHut.createHut = function (React, config) {
                 if (isResolved(fragment[0]) || fragment[0] === null)
                     return fragment[0];
                 else if (Array.isArray(fragment[0]))
-                    return reslove.apply(null, fragment[0]);
+                    return resolve.apply(null, fragment[0]);
 
                 element = fragment[0];
                 break;
@@ -102,7 +102,7 @@ ReactHut.createHut = function (React, config) {
 
 
         spec = resolveComponentTransform(spec, transform);
-        resolveChildren(spec[2], reslove);
+        resolveChildren(spec[2], resolve);
 
         args[0] = (spec[0][0] === delimiter ? spec[0].slice(1) : spec[0]);
         args[1] = spec[1];
@@ -126,10 +126,10 @@ ReactHut.createHut = function (React, config) {
             return null;
 
         if (!Array.isArray(args[0]))
-            return reslove(args);
+            return resolve(args);
 
         for (var i = 0; i < args.length; i++)
-            args[i] = reslove(args[i]);
+            args[i] = resolve(args[i]);
 
         return args;
     };
