@@ -29,20 +29,11 @@ function flattenChildren(fragment) {
 }
 
 function resolveComponentTransform(fragment, transform) {
-    var transformed;
 
     if (!transform)
         return fragment;
 
-    transformed = transform(fragment);
-
-    if (!transformed)
-        return fragment;
-
-    if (!Array.isArray(transformed))
-        throw new Error("component transform should return an array or nothing, got: " + typeof transformed);
-
-    return transformed;
+    return transform(fragment) || fragment;
 }
 
 
@@ -105,7 +96,17 @@ ReactHut.createHut = function (React, config) {
         }
 
 
-        spec = resolveComponentTransform(spec, transform);
+        if (transform) { // resolve component transform
+            spec = (transform(spec) || spec);
+
+            if (isResolved(spec))
+                return spec;
+
+            if (!Array.isArray(spec))
+                throw new Error("component transform should return an array or nothing, got: " + typeof spec);
+        }
+
+
         resolveChildren(spec[2], resolve);
 
 

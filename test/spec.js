@@ -451,6 +451,14 @@ describe("react-hut", () => {
                 verifyTree(H(":span", {style : {}}, []), <div className="moo">mooo!</div>);
             });
 
+            it("should be possible to return a resolved component", () => {
+                let transform = () => <div className="resolved" />;
+                let H = reactHut.createHut(React, {transform: transform});
+
+                verifyTree(H(":crap", {style : {}}, []), <div className="resolved" />);
+            });
+
+
             it("should throw an error when a transformation returns a thruthy non array value", () => {
                 let transform = sinon.stub();
                 let H = reactHut.createHut(React, {transform: transform});
