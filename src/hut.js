@@ -3,6 +3,11 @@ function isObject(val) {
     return val != null && typeof val === 'object' && Array.isArray(val) === false;
 }
 
+
+function stripDelimiter(element) {
+    return (element[0] === ":" ? element.slice(1) : element);
+}
+
 function resolveChildren(children, resolver) {
     if (!Array.isArray(children))
         return;
@@ -38,17 +43,12 @@ ReactHut.createHut = function (React, config) {
     var transform = (config.transform || null);
     var factory = React.createElement;
     var isResolved = React.isValidElement;
-    var delimiter  = ":";
-
 
     var isComponentSpec = function(val) {
-        return (typeof val === "function" || (typeof val === "string" && val[0] === delimiter));
+        return (typeof val === "function" || (typeof val === "string" && val[0] === ":"));
     };
 
     var resolve = function (fragment) {
-        var i, element;
-        var props = null;
-        var children = null;
         var spec = [null, null, null];
         var args = [];
 
@@ -75,36 +75,32 @@ ReactHut.createHut = function (React, config) {
                 else if (Array.isArray(fragment[0]))
                     return resolve.apply(null, fragment[0]);
 
-                element = fragment[0];
+                spec[0] = fragment[0];
                 break;
 
             case 2:
                 if (isObject(fragment[1])) {
-                    element  = fragment[0];
-                    props    = fragment[1];
+                    spec[0]  = fragment[0];
+                    spec[1]    = fragment[1];
                 } else {
-                    element  = fragment[0];
-                    children = fragment[1];
+                    spec[0]  = fragment[0];
+                    spec[2] = fragment[1];
                 }
 
                 break;
 
             case 3:
-                element  = fragment[0];
-                props    = fragment[1];
-                children = fragment[2];
+                spec[0]  = fragment[0];
+                spec[1]  = fragment[1];
+                spec[2]  = fragment[2];
                 break;
         }
-
-        spec[0] = element;
-        spec[1] = props;
-        spec[2] = children;
 
 
         spec = resolveComponentTransform(spec, transform);
         resolveChildren(spec[2], resolve);
 
-        args[0] = (spec[0][0] === delimiter ? spec[0].slice(1) : spec[0]);
+        args[0] = stripDelimiter(spec[0]);
         args[1] = spec[1];
 
         // flatten children so that we don't get warnings all the time...
