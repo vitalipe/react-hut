@@ -395,6 +395,51 @@ describe("react-hut", () => {
             assert.callCount(transform, 5);
         });
 
+        it("should be possible apply transformation by returning a new array", () => {
+            let transform = () => [":div", {className : "moo"}, "mooo!"];
+            let H = reactHut.createHut(React, {transform: transform});
+
+            verifyTree(H(":span", {style : {}}, []), <div className="moo">mooo!</div>);
+        });
+
+        it("should be possible apply transformation by altering the param", () => {
+            let transform = (fragment) => {
+                fragment[0] = ":div";
+                fragment[1] = {className : "moo"};
+                fragment[2] = "mooo!";
+            };
+
+            let H = reactHut.createHut(React, {transform: transform});
+
+            verifyTree(H(":span", {style : {}}, []), <div className="moo">mooo!</div>);
+        });
+
+        it("should be possible to return resolved components from transform", () => {
+            let transform = () => <div className="resolved" />;
+            let H = reactHut.createHut(React, {transform: transform});
+
+            verifyTree(H(":crap", {style : {}}, []), <div className="resolved" />);
+        });
+
+
+        it("should throw an error when a transformation returns a thruthy non array value", () => {
+            let transform = sinon.stub();
+            let H = reactHut.createHut(React, {transform: transform});
+
+            transform.returns(true);
+            assert.throws(() => H(":span", {style : {}}, []), Error);
+
+            transform.returns(42);
+            assert.throws(() => H(":span", {style : {}}, []), Error);
+
+            transform.returns({});
+            assert.throws(() => H(":span", {style : {}}, []), Error);
+
+            transform.returns("component");
+            assert.throws(() => H(":span", {style : {}}, []), Error);
+        });
+
+
         describe("#transform function args", () => {
 
             it("should be called with the component, props & children in a single array argument", () => {
@@ -432,50 +477,6 @@ describe("react-hut", () => {
                 H(":header");
             });
 
-            it("should be possible apply transformation by returning a new array", () => {
-                let transform = () => [":div", {className : "moo"}, "mooo!"];
-                let H = reactHut.createHut(React, {transform: transform});
-
-                verifyTree(H(":span", {style : {}}, []), <div className="moo">mooo!</div>);
-            });
-
-            it("should be possible apply transformation by altering the param", () => {
-                let transform = (fragment) => {
-                    fragment[0] = ":div";
-                    fragment[1] = {className : "moo"};
-                    fragment[2] = "mooo!";
-                };
-
-                let H = reactHut.createHut(React, {transform: transform});
-
-                verifyTree(H(":span", {style : {}}, []), <div className="moo">mooo!</div>);
-            });
-
-            it("should be possible to return resolved components from transform", () => {
-                let transform = () => <div className="resolved" />;
-                let H = reactHut.createHut(React, {transform: transform});
-
-                verifyTree(H(":crap", {style : {}}, []), <div className="resolved" />);
-            });
-
-
-            it("should throw an error when a transformation returns a thruthy non array value", () => {
-                let transform = sinon.stub();
-                let H = reactHut.createHut(React, {transform: transform});
-
-                transform.returns(true);
-                assert.throws(() => H(":span", {style : {}}, []), Error);
-
-                transform.returns(42);
-                assert.throws(() => H(":span", {style : {}}, []), Error);
-
-                transform.returns({});
-                assert.throws(() => H(":span", {style : {}}, []), Error);
-
-                transform.returns("component");
-                assert.throws(() => H(":span", {style : {}}, []), Error);
-            });
-            
         });
     })
 });
