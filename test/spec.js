@@ -451,7 +451,7 @@ describe("react-hut", () => {
                 verifyTree(H(":span", {style : {}}, []), <div className="moo">mooo!</div>);
             });
 
-            it("should be possible to return a resolved component", () => {
+            it("should be possible to return resolved components from transform", () => {
                 let transform = () => <div className="resolved" />;
                 let H = reactHut.createHut(React, {transform: transform});
 
