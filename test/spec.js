@@ -194,9 +194,82 @@ describe("react-hut", () => {
                         <span />
                     </div>
                 )
-
             });
 
+            it("should be possible to omit array with multiple child fragments", () => {
+                verifyTree(H(
+                    [":ul",
+                        [":li"], [":li"], [":li"]]
+                    ),
+
+                    <ul>
+                        <li />
+                        <li />
+                        <li />
+                    </ul>
+                )
+            });
+
+            it("should be possible to omit array with primitive children", () => {
+                verifyTree(H(
+                    [":div",
+                        42, "hello"]
+                    ),
+
+                    <div>
+                        {42}
+                        {"hello"}
+                    </div>
+                )
+            });
+
+            it("should be possible to omit array with mixed child fragments", () => {
+                verifyTree(H(
+                    [":ul",
+                        "hello", [":li"], [":li"], "world", [":li"]]
+                    ),
+
+                    <ul>
+                        hello
+                        <li />
+                        <li />
+                        world
+                        <li />
+                    </ul>
+                );
+
+                verifyTree(H(
+                    [":ul",
+                        [":li"], "hello", [":li"], "world", [":li"]]
+                    ),
+
+                    <ul>
+                        <li />
+                        hello
+                        <li />
+                        world
+                        <li />
+                    </ul>
+                );
+            });
+
+            it("should be possible to omit array with nested children", () => {
+                verifyTree(H(
+                    [":ul",
+                        [":li",
+                            [":span", {className : "inner"}, "hey"]],
+                        [":li"],
+                        [":li"]
+                    ]
+                    ),
+
+                    <ul>
+                        <li><span className="inner">hey</span></li>
+                        <li/>
+                        <li/>
+                    </ul>
+                )
+            });
         });
 
         describe("#nested array components", () => {
