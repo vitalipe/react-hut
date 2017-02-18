@@ -9,7 +9,7 @@ function concat() {
 
     return compressor.minify({
         compressor: "no-compress",
-        input: ["src/umd/_head", "src/hut.js", "src/umd/_tail"],
+        input: ["src/umd/_head", "src/class-lists.js", "src/hut.js", "src/umd/_tail"],
         output: "bin/react-hut.js"
     }).then(done);
 
