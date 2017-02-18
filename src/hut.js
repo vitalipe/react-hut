@@ -9,12 +9,8 @@ function isComponentSpec(val) {
 }
 
 
-function resolveChildren(children, resolver) {
-    if (!Array.isArray(children))
-        return;
+function resolveChildren(spec, resolver) {
 
-    for (var i = 0; i < children.length; i++)
-        children[i] = resolver(children[i]);
 }
 
 
@@ -40,52 +36,43 @@ ReactHut.createHut = function (React, config) {
 
 
     var resolve = function (fragment) {
-        var spec = [null, null, null];
+        var spec = [];
         var i, propName;
 
         if (!Array.isArray(fragment))
             return fragment;
 
+        // unroll nested arrays -> [[[[[[:div]]]]]] -> [:div]
         while (fragment.length === 1 && Array.isArray(fragment[0]))
             fragment = fragment[0];
 
-        if (fragment.length < 1 || fragment[0] === null)
+        // empty
+        if (fragment.length === 0 || fragment[0] === null)
             return null;
 
+        // an array of children ?
         if (!isComponentSpec(fragment[0]))
             return fragment.map(resolve);
 
-        if (fragment.length > 3)
-            throw new Error("got: " + fragment.length + " args, as a child spec, that's not supported!");
 
+        if (fragment.length === 1) {
+            if (isResolved(fragment[0]) || fragment[0] === null)
+                return fragment[0];
 
-        switch (fragment.length) {
-            case 1:
+            else if (Array.isArray(fragment[0]))
+                return resolve.apply(null, fragment[0]);
 
-                if (isResolved(fragment[0]) || fragment[0] === null)
-                    return fragment[0];
+            spec[0] = fragment[0];
+            spec[1] = null;
 
-                else if (Array.isArray(fragment[0]))
-                    return resolve.apply(null, fragment[0]);
+        } else {
 
-                spec[0] = fragment[0];
+            spec[0] = fragment[0];
+            spec[1] = isObject(fragment[1]) ? fragment[1] : null;
 
-                break;
+            for (i = isObject(fragment[1]) ? 2 : 1; i < fragment.length; i++)
+                spec.push(fragment[i]);
 
-            case 2:
-                if (isObject(fragment[1])) {
-                    spec[0]  = fragment[0];
-                    spec[1]    = fragment[1];
-                } else {
-                    spec[0]  = fragment[0];
-                    spec[2] = fragment[1];
-                }
-
-                break;
-
-            case 3:
-                spec = fragment;
-                break;
         }
 
         // prop transform
@@ -109,15 +96,11 @@ ReactHut.createHut = function (React, config) {
         }
 
 
-        resolveChildren(spec[2], resolve);
-
+        for (i = 2; i < spec.length; i++)
+            spec[i] = resolve(spec[i]);
 
         if (typeof spec[0] === "string")
             spec[0] = spec[0].slice(1);
-
-        if (Array.isArray(spec[2]))
-            spec.push.apply(spec, spec.pop());
-
 
         return factory.apply(React, spec);
     };

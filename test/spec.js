@@ -32,7 +32,7 @@ describe("react-hut", () => {
         });
     });
 
-    describe("default hut context", () => {
+    describe("#default hut context", () => {
         let H = reactHut.createHut(React, {});
         let CustomElement = React.createClass({
             render() { return <div>
@@ -182,19 +182,19 @@ describe("react-hut", () => {
 
         });
 
-        describe("invalid input", () => {
+        describe("#flat children", () => {
 
-            it("should throw when root element has > 3 args", () => {
-                assert.throws(() => H(":div", {}, [], "invalid"));
-                assert.throws(() => H([":div", {}, [], "invalid"]));
-            });
+            it("should be possible to omit array when there is only one child fragment", () => {
+                verifyTree(H(
+                    [":div",
+                        [":span"]]
+                    ),
 
-            it("should throw when a deeply nested element fragment has > 3 args", () => {
-                assert.throws(() => H([":div", {},
-                    [
-                        [":div", {}, [], "invalid", "extra", "args"]
-                    ]
-                ]));
+                    <div>
+                        <span />
+                    </div>
+                )
+
             });
 
         });
@@ -586,10 +586,10 @@ describe("react-hut", () => {
         describe("#transform function args", () => {
 
             it("should be called with the component, props & children in a single array argument", () => {
-                let transform = willVerifyEqual([":div", {k: "v"}, ["hello"]]);
+                let transform = willVerifyEqual([":div", {k: "v"}, "hello", "man"]);
                 let H = reactHut.createHut(React, {componentTransform: transform});
 
-                H(":div", {k: "v"}, ["hello"]);
+                H(":div", {k: "v"}, "hello", "man");
             });
 
             it("missing props should be passed as null", () => {
@@ -599,22 +599,22 @@ describe("react-hut", () => {
                 H(":div", ["raw..."]);
             });
 
-            it("missing children should be passed as null", () => {
-                let transform = willVerifyEqual([":div", {works: true}, null]);
+            it("missing children should be passed are undefined", () => {
+                let transform = willVerifyEqual([":div", {works: true}]);
                 let H = reactHut.createHut(React, {componentTransform: transform});
 
                 H(":div", {works: true});
             });
 
-            it("missing children & props should be passed as 2 null args", () => {
-                let transform = willVerifyEqual([":div", null, null]);
+            it("missing props should be passed as null when children are passed", () => {
+                let transform = willVerifyEqual([":header", null, "hello", "world"]);
                 let H = reactHut.createHut(React, {componentTransform: transform});
 
-                H(":div");
+                H(":header", "hello", "world");
             });
 
-            it("missing children & props should be passed as 2 null args", () => {
-                let transform = willVerifyEqual([":header", null, null]);
+            it("missing props should be passed as null when children & props are missing", () => {
+                let transform = willVerifyEqual([":header", null]);
                 let H = reactHut.createHut(React, {componentTransform: transform});
 
                 H(":header");
