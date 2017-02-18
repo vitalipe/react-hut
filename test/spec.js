@@ -361,7 +361,7 @@ describe("react-hut", () => {
             });
         });
 
-        describe("shorthand notation", () => {
+        describe("#shorthand notation", () => {
 
             it("should be possible to omit children & props ", () => {
 
