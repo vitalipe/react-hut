@@ -9,11 +9,6 @@ function isComponentSpec(val) {
 }
 
 
-function resolveChildren(spec, resolver) {
-
-}
-
-
 ReactHut.createHut = function (React, config) {
     config = (config || {});
 
@@ -59,14 +54,19 @@ ReactHut.createHut = function (React, config) {
             return fragment.map(resolve);
 
 
+        // we use a different array, and copy, because it's faster & simpler..
         spec[0] = fragment[0];
 
+        // props or children?
         if (fragment.length > 1) {
+            i = 0;
 
-            if (isObject(fragment[1]))
+            if (isObject(fragment[1])) {
                 spec[1] =  fragment[1];
+                i = 1;
+            }
 
-            for (i = isObject(fragment[1]) ? 2 : 1; i < fragment.length; i++)
+            while(++i < fragment.length)
                 spec.push(fragment[i]);
         }
 
