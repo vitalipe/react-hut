@@ -36,7 +36,7 @@ ReactHut.createHut = function (React, config) {
 
 
     var resolve = function (fragment) {
-        var spec = [];
+        var spec = [null, null];
         var i, propName;
 
         if (!Array.isArray(fragment))
@@ -46,33 +46,28 @@ ReactHut.createHut = function (React, config) {
         while (fragment.length === 1 && Array.isArray(fragment[0]))
             fragment = fragment[0];
 
-        // empty
+        // empty ?
         if (fragment.length === 0 || fragment[0] === null)
             return null;
+
+        // resolved ?
+        if (fragment.length === 1 && isResolved(fragment[0]))
+            return fragment[0];
 
         // an array of children ?
         if (!isComponentSpec(fragment[0]))
             return fragment.map(resolve);
 
 
-        if (fragment.length === 1) {
-            if (isResolved(fragment[0]) || fragment[0] === null)
-                return fragment[0];
+        spec[0] = fragment[0];
 
-            else if (Array.isArray(fragment[0]))
-                return resolve.apply(null, fragment[0]);
+        if (fragment.length > 1) {
 
-            spec[0] = fragment[0];
-            spec[1] = null;
-
-        } else {
-
-            spec[0] = fragment[0];
-            spec[1] = isObject(fragment[1]) ? fragment[1] : null;
+            if (isObject(fragment[1]))
+                spec[1] =  fragment[1];
 
             for (i = isObject(fragment[1]) ? 2 : 1; i < fragment.length; i++)
                 spec.push(fragment[i]);
-
         }
 
         // prop transform
@@ -95,12 +90,14 @@ ReactHut.createHut = function (React, config) {
                 throw new Error("component transform should return an array or nothing, got: " + typeof spec);
         }
 
-
+        // resolve children
         for (i = 2; i < spec.length; i++)
             spec[i] = resolve(spec[i]);
 
+        // remove ":" from primitive components
         if (typeof spec[0] === "string")
             spec[0] = spec[0].slice(1);
+
 
         return factory.apply(React, spec);
     };
