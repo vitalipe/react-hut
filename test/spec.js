@@ -376,11 +376,136 @@ describe("react-hut", () => {
         })
     });
 
+    describe("#prop transform", () => {
+
+        it("should be called in each matching prop", () => {
+            let transform1 = sinon.spy(v => v);
+            let transform2 = sinon.spy(v => v);
+
+            let H = reactHut.createHut(React, {
+                propsTransform : {
+                    className : transform1,
+                    key : transform2
+                }
+            });
+
+            H([":div", {className : "foo"},
+                [
+                    [":ul", {key : 99, className : "bar"}, [
+                        [":li", {key : 0}],
+                        [":li", {key : 1}]
+                    ]]
+                ]
+            ]);
+
+            assert.calledTwice(transform1);
+            assert.calledThrice(transform2);
+        });
+
+        it("should pass current prop value to transform", () => {
+            let transform = sinon.spy(v => v);
+            let H = reactHut.createHut(React, { propsTransform : { className : transform}});
+
+            H(":div", {className : "foo"});
+
+            assert.calledWith(transform, "foo");
+
+        });
+
+
+        it("should be possible to change prop value by returning a value", () => {
+            let classTransform = classList => classList.join(" ");
+            let H = reactHut.createHut(React, { propsTransform : { className : classTransform}});
+
+            verifyTree(
+                H(":div", {className : ["foo", "bar"]},
+                    [
+                        [":ul", {key : 99, className : ["moo", "42", "crap"]}]
+                    ]
+
+                ), <div className="foo bar">
+                    <ul key={99} className="moo 42 crap" />
+                </div>
+            );
+        });
+
+        it("should be called before component transform", () => {
+            let propTransform = sinon.stub().returns(42);
+            let componentTransform = sinon.spy(([c, props]) => assert.equal(props.key, 42));
+            let H = reactHut.createHut(React, {
+                propsTransform : { key : propTransform},
+                componentTransform : componentTransform
+            });
+
+            H(":div", {key : 0});
+
+            assert(propTransform.calledBefore(componentTransform));
+        });
+
+
+
+        describe("# default className transform", () => {
+            beforeEach(() => {
+                sinon.spy(reactHut , "classLists");
+
+            });
+
+            afterEach(() => {
+                reactHut.classLists.restore();
+            });
+
+            it("should use class-lists lib for class name props by default", () => {
+                let H = reactHut.createHut(React);
+
+                H(":div", {className : ["one", "two"]}, [[":div", {className : "other"}]]);
+
+                assert.calledTwice(reactHut.classLists);
+                assert.calledWith(reactHut.classLists, ["one", "two"]);
+                assert.calledWith(reactHut.classLists, "other");
+            });
+
+            it("should be possible to add other prop transforms without effecting  default class-lists transform", () => {
+                let H = reactHut.createHut(React, { propsTransform : { key : k => k}});
+
+                H(":div", {className : ["one", "two"]}, [[":div", {className : "other"}]]);
+
+                assert.calledTwice(reactHut.classLists);
+                assert.calledWith(reactHut.classLists, ["one", "two"]);
+                assert.calledWith(reactHut.classLists, "other");
+            });
+
+            it("should be possible to override default class-lists transform", () => {
+                let custom = sinon.stub();
+                let H = reactHut.createHut(React, { propsTransform : { className : custom}});
+
+                H(":div", {className : ["one", "two"]}, [[":div", {className : "other"}]]);
+
+                assert.notCalled(reactHut.classLists);
+
+                assert.calledTwice(custom);
+                assert.calledWith(custom, ["one", "two"]);
+                assert.calledWith(custom, "other");
+            });
+
+            it("should not crash when class-lists is missing", () => {
+                let classLists = reactHut.classLists;
+                delete reactHut.classLists;
+
+                assert.doesNotThrow(() => {
+                    let H = reactHut.createHut(React);
+                    H(":div", {className : ["one", "two"]}, [[":div", {className : "other"}]]);
+                });
+
+                reactHut.classLists = classLists;
+            });
+        });
+    });
+
     describe("#component transform", () => {
 
         it("should be called for each component", () => {
             let transform = sinon.stub();
-            let H = reactHut.createHut(React, { transform : transform});
+            let H = reactHut.createHut(React, { componentTransform : transform});
 
             H([":div",
                 [
@@ -397,7 +522,7 @@ describe("react-hut", () => {
 
         it("should be possible apply transformation by returning a new array", () => {
             let transform = () => [":div", {className : "moo"}, "mooo!"];
-            let H = reactHut.createHut(React, {transform: transform});
+            let H = reactHut.createHut(React, {componentTransform: transform});
 
             verifyTree(H(":span", {style : {}}, []), <div className="moo">mooo!</div>);
         });
@@ -409,21 +534,21 @@ describe("react-hut", () => {
                 fragment[2] = "mooo!";
             };
 
-            let H = reactHut.createHut(React, {transform: transform});
+            let H = reactHut.createHut(React, {componentTransform: transform});
 
             verifyTree(H(":span", {style : {}}, []), <div className="moo">mooo!</div>);
         });
 
         it("should be possible to return resolved components from transform", () => {
             let transform = () => <div className="resolved" />;
-            let H = reactHut.createHut(React, {transform: transform});
+            let H = reactHut.createHut(React, {componentTransform: transform});
 
             verifyTree(H(":crap", {style : {}}, []), <div className="resolved" />);
         });
 
         it("should be possible to modify children before they are resolved", () => {
             let transform = ([e, p, children]) => (children || []).forEach(c => { if (c[0] === ":fake") c[0] = ":li" });
-            let H = reactHut.createHut(React, {transform: transform});
+            let H = reactHut.createHut(React, {componentTransform: transform});
 
 
             verifyTree(H(
@@ -442,7 +567,7 @@ describe("react-hut", () => {
 
         it("should throw an error when a transformation returns a thruthy non array value", () => {
             let transform = sinon.stub();
-            let H = reactHut.createHut(React, {transform: transform});
+            let H = reactHut.createHut(React, {componentTransform: transform});
 
             transform.returns(true);
             assert.throws(() => H(":span", {style : {}}, []), Error);
@@ -462,35 +587,35 @@ describe("react-hut", () => {
 
             it("should be called with the component, props & children in a single array argument", () => {
                 let transform = willVerifyEqual([":div", {k: "v"}, ["hello"]]);
-                let H = reactHut.createHut(React, {transform: transform});
+                let H = reactHut.createHut(React, {componentTransform: transform});
 
                 H(":div", {k: "v"}, ["hello"]);
             });
 
             it("missing props should be passed as null", () => {
                 let transform = willVerifyEqual([":div", null, ["raw..."]]);
-                let H = reactHut.createHut(React, {transform: transform});
+                let H = reactHut.createHut(React, {componentTransform: transform});
 
                 H(":div", ["raw..."]);
             });
 
             it("missing children should be passed as null", () => {
                 let transform = willVerifyEqual([":div", {works: true}, null]);
-                let H = reactHut.createHut(React, {transform: transform});
+                let H = reactHut.createHut(React, {componentTransform: transform});
 
                 H(":div", {works: true});
             });
 
             it("missing children & props should be passed as 2 null args", () => {
                 let transform = willVerifyEqual([":div", null, null]);
-                let H = reactHut.createHut(React, {transform: transform});
+                let H = reactHut.createHut(React, {componentTransform: transform});
 
                 H(":div");
             });
 
             it("missing children & props should be passed as 2 null args", () => {
                 let transform = willVerifyEqual([":header", null, null]);
-                let H = reactHut.createHut(React, {transform: transform});
+                let H = reactHut.createHut(React, {componentTransform: transform});
 
                 H(":header");
             });

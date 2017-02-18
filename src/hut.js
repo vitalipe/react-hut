@@ -24,12 +24,24 @@ ReactHut.createHut = function (React, config) {
     if (!React || !React.createElement || !React.isValidElement)
         throw new Error("first arg must be React!");
 
-    var transform = (config.transform || null);
+
+    var transformProps = config.propsTransform || {};
+    var transformPropNames = Object.keys(transformProps);
+
+    var componentTransform = (config.componentTransform || null);
+
     var factory = React.createElement;
     var isResolved = React.isValidElement;
 
+    if (ReactHut.classLists && !transformProps.className) {
+        transformProps.className = ReactHut.classLists;
+        transformPropNames.push("className");
+    }
+
+
     var resolve = function (fragment) {
         var spec = [null, null, null];
+        var i, propName;
 
         if (!Array.isArray(fragment))
             return fragment;
@@ -76,9 +88,18 @@ ReactHut.createHut = function (React, config) {
                 break;
         }
 
+        // prop transform
+        if (spec[1])
+            for (i = 0; i < transformPropNames.length; i++) {
+                propName = transformPropNames[i];
 
-        if (transform) { // resolve component transform
-            spec = (transform(spec) || spec);
+                if (spec[1].hasOwnProperty(propName))
+                    spec[1][propName] = transformProps[propName](spec[1][propName]);
+            }
+
+        // component transform
+        if (componentTransform) {
+            spec = (componentTransform(spec) || spec);
 
             if (isResolved(spec))
                 return spec;
