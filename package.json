@@ -12,7 +12,7 @@
   "scripts": {
     "watch": "npm-watch",
     "test-min": "node build.js dev && mocha -R min --compilers .:test/_jsx-compiler.js test/spec.js || exit 0",
-    "test": "node build.js dev && mocha --compilers .:test/_jsx-compiler.js test/spec.js",
+    "test": "node build.js prod && mocha --compilers .:test/_jsx-compiler.js test/spec.js",
     "build-prod": "node build.js prod",
     "build-dev": "node build.js dev",
     "dist": "node build.js dist"

@@ -47,6 +47,13 @@ function isComponentSpec(val) {
     return (typeof val === "function" || (typeof val === "string" && val[0] === ":"));
 }
 
+function classListsProxy(args) {
+    if (!Array.isArray(args))
+        return args;
+
+    // flatten
+    return  ReactHut.classLists.apply(null, args);
+}
 
 ReactHut.createHut = function (React, config) {
     config = (config || {});
@@ -64,8 +71,10 @@ ReactHut.createHut = function (React, config) {
     var isResolved = React.isValidElement;
 
     if (ReactHut.classLists && !transformProps.className) {
-        transformProps.className = ReactHut.classLists;
+        transformProps.className = classListsProxy;
         transformPropNames.push("className");
+
+
     }
 
 

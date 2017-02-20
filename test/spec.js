@@ -530,21 +530,32 @@ describe("react-hut", () => {
             it("should use class-lists lib for class name props by default", () => {
                 let H = reactHut.createHut(React);
 
-                H(":div", {className : ["one", "two"]}, [[":div", {className : "other"}]]);
+                H(":div", {className : ["one", "two"]},
+                    [":div", {className : ["moo", "crap", "other"]}
+                ]);
 
                 assert.calledTwice(reactHut.classLists);
-                assert.calledWith(reactHut.classLists, ["one", "two"]);
-                assert.calledWith(reactHut.classLists, "other");
+                assert.calledWith(reactHut.classLists, "one", "two");
+                assert.calledWith(reactHut.classLists, "moo", "crap", "other");
+            });
+
+            it("should spread args to class-lists", () => {
+                let H = reactHut.createHut(React);
+
+                H(":div", {className : ["one", "two", [true, "hidden"]] });
+
+                assert.calledWith(reactHut.classLists, "one", "two", [true, "hidden"]);
             });
 
             it("should be possible to add other prop transforms without effecting  default class-lists transform", () => {
                 let H = reactHut.createHut(React, { propsTransform : { key : k => k}});
 
-                H(":div", {className : ["one", "two"]}, [[":div", {className : "other"}]]);
+                H(":div", {className : ["one", "two"]},
+                    [":div", {className : ["other", [true, "if-true"]] }]);
 
                 assert.calledTwice(reactHut.classLists);
-                assert.calledWith(reactHut.classLists, ["one", "two"]);
-                assert.calledWith(reactHut.classLists, "other");
+                assert.calledWith(reactHut.classLists, "one", "two");
+                assert.calledWith(reactHut.classLists, "other", [true, "if-true"]);
             });
 
             it("should be possible to override default class-lists transform", () => {
