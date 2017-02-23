@@ -73,8 +73,6 @@ ReactHut.createHut = function (React, config) {
     if (ReactHut.classLists && !transformProps.className) {
         transformProps.className = classListsProxy;
         transformPropNames.push("className");
-
-
     }
 
 
@@ -143,8 +141,6 @@ ReactHut.createHut = function (React, config) {
             spec[i] = resolve(spec[i]);
 
 
-
-
         // remove ":" from primitive components and inline class names
         if (typeof spec[0] === "string") {
             componentSpec = spec[0].slice(1);
@@ -165,27 +161,11 @@ ReactHut.createHut = function (React, config) {
         }
 
 
-
-
         return factory.apply(React, spec);
     };
 
     return function () {
-        var args = Array.prototype.slice.call(arguments);
-
-        while (args.length === 1 && Array.isArray(args[0]))
-            args = args[0];
-
-        if(!args.length)
-            return null;
-
-        if (!Array.isArray(args[0]))
-            return resolve(args);
-
-        for (var i = 0; i < args.length; i++)
-            args[i] = resolve(args[i]);
-
-        return args;
+        return resolve(Array.prototype.slice.call(arguments));
     };
 };
 

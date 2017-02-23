@@ -126,21 +126,7 @@ ReactHut.createHut = function (React, config) {
     };
 
     return function () {
-        var args = Array.prototype.slice.call(arguments);
-
-        while (args.length === 1 && Array.isArray(args[0]))
-            args = args[0];
-
-        if(!args.length)
-            return null;
-
-        if (!Array.isArray(args[0]))
-            return resolve(args);
-
-        for (var i = 0; i < args.length; i++)
-            args[i] = resolve(args[i]);
-
-        return args;
+        return resolve(Array.prototype.slice.call(arguments));
     };
 };
 
