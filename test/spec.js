@@ -107,12 +107,28 @@ describe("react-hut", () => {
                     [
                         CustomElement, {},
                         [
-                            "I'm a simple string ",
-                            "answer is: ",
-                            42
+                            "the answer is: ",
+                            42,
+                            "and it's",
+                            true,
+                            "or",
+                            false,
+                            "but not",
+                            0
                         ]
 
-                    ]), <CustomElement>{["I'm a simple string ", "answer is: ", 42]}</CustomElement>);
+                    ]), <CustomElement>{
+                    [
+                        "the answer is: ",
+                        42,
+                        "and it's",
+                        true,
+                        "or",
+                        false,
+                        "but not",
+                        0
+                    ]
+                }</CustomElement>);
             });
 
             it("should be possible to mix literals with child components", () => {
@@ -449,7 +465,7 @@ describe("react-hut", () => {
         })
     });
 
-    describe("#prop transform", () => {
+    describe("#props transform", () => {
 
         it("should be called in each matching prop", () => {
             let transform1 = sinon.spy(v => v);
