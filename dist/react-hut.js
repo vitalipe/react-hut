@@ -80,7 +80,7 @@ ReactHut.createHut = function (React, config) {
 
     var resolve = function (fragment) {
         var spec = [null, null];
-        var i, propName;
+        var i, propName, componentSpec, propsSpec;
 
         if (!Array.isArray(fragment))
             return fragment;
@@ -142,9 +142,29 @@ ReactHut.createHut = function (React, config) {
         for (i = 2; i < spec.length; i++)
             spec[i] = resolve(spec[i]);
 
-        // remove ":" from primitive components
-        if (typeof spec[0] === "string")
-            spec[0] = spec[0].slice(1);
+
+
+
+        // remove ":" from primitive components and inline class names
+        if (typeof spec[0] === "string") {
+            componentSpec = spec[0].slice(1);
+
+            componentSpec = componentSpec.split(".");
+            spec[0] = componentSpec.shift();
+
+            if (componentSpec.length) {
+                propsSpec = (spec[1] || {});
+
+                if (propsSpec.className)
+                    propsSpec.className =  (propsSpec.className + " " + componentSpec.join(" "));
+                else
+                    propsSpec.className = componentSpec.join(" ");
+
+                spec[1] = propsSpec;
+            }
+        }
+
+
 
 
         return factory.apply(React, spec);

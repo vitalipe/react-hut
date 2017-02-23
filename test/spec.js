@@ -462,7 +462,24 @@ describe("react-hut", () => {
                     </div>);
             });
 
-        })
+        });
+
+        describe("#inline class-names", () => {
+
+            it("should be possible to inline class name with .", () => {
+               verifyTree(H([":div.my-class-name"]), <div className="my-class-name" />);
+            });
+
+            it("should be possible to inline multiple class names", () => {
+                verifyTree(H([":div.class-first.class-mid.class-last"]), <div className="class-first class-mid class-last" />);
+            });
+
+            it("should append inline class names to className prop", () => {
+                verifyTree(H([":div.panel", {className : "my"}]), <div className="my panel" />);
+            });
+
+
+        });
     });
 
     describe("#props transform", () => {
@@ -638,6 +655,15 @@ describe("react-hut", () => {
 
             verifyTree(H(":span", {style : {}}, []), <div className="moo">mooo!</div>);
         });
+
+
+        it("should be called before class-names are inline", () => {
+            let transform = ([element]) => assert.equal(element, ":div.panel");
+            let H = reactHut.createHut(React, {componentTransform: transform});
+
+            H([":div.panel"]);
+        });
+
 
         it("should be possible to return resolved components from transform", () => {
             let transform = () => <div className="resolved" />;
