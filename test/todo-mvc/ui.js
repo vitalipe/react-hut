@@ -10,17 +10,16 @@
     let TodoItem = (item) => {
         return H(
             [":li", {key : item.id},
-                [":div", {className : "view"},
-                    [":input",
+                [":div.view",
+                    [":input.toggle",
                         {
-                            className : "toggle",
                             type : "checkbox",
                             checked : item.completed,
                             onChange : item.toggleCompleted
                         }
                     ],
                     [":label", item.title],
-                    [":button", {className : "destroy", onClick : item.destroy}]
+                    [":button.destroy", {onClick : item.destroy}]
                 ]
             ]);
     };
@@ -30,29 +29,25 @@
         let completed = (todos.find(item => !item.completed) || false);
 
         return H(
-            [":section", {className : "main"},
-
-                [":input",
+            [":section.main",
+                [":input.toggle-all",
                     {
-                        className : "toggle-all",
                         type : "checkbox",
                         checked : false,
                         onChange : () => todos.forEach(item => item.setCompleted(completed))
                     }
                 ],
-                [":ul", {className : "todo-list"}, todos.map(TodoItem)]
-            ]);
+                [":ul.todo-list", todos.map(TodoItem)]]);
     };
 
 
     let Header = ({newItemTitle, onChange, onDone}) => {
        return H(
-           [":header", {className : "header"},
+           [":header.header",
 
                [":h1", "todos"],
-               [":input",
+               [":input.new-todo",
                    {
-                       className : "new-todo",
                        placeholder : "What needs to be done?",
                        autoFocus : true,
                        type : "text",
@@ -61,8 +56,7 @@
                        onBlur : onDone,
                        value : newItemTitle
                    }
-               ]
-           ]);
+               ]]);
     };
 
     let Footer = ({todos}) => {
@@ -72,14 +66,12 @@
             return H(":div");
 
         return H(
-            [":footer", {className : "footer"},
+            [":footer.footer",
 
-                [":span", {className : "todo-count"},
+                [":span.todo-count",
                     [":strong", unfinished], " items", " left"],
 
-                [":ul", {className : "filters"}]
-
-            ]);
+                [":ul.filters"]]);
     };
 
 
@@ -112,7 +104,7 @@
             let {store} = this.props;
 
             return H(
-                [":section", {className : "todoapp"},
+                [":section.todoapp",
                     [Header,
                         {
                             onDone : this.handleTodoAdd,
@@ -122,8 +114,7 @@
                     ],
 
                     [TodoList, {todos : store.todos}],
-                    [Footer, {todos : store.todos}]
-                ]);
+                    [Footer, {todos : store.todos}]]);
         }
 
     });
