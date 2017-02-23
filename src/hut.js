@@ -34,8 +34,6 @@ ReactHut.createHut = function (React, config) {
     if (ReactHut.classLists && !transformProps.className) {
         transformProps.className = classListsProxy;
         transformPropNames.push("className");
-
-
     }
 
 
@@ -104,8 +102,6 @@ ReactHut.createHut = function (React, config) {
             spec[i] = resolve(spec[i]);
 
 
-
-
         // remove ":" from primitive components and inline class names
         if (typeof spec[0] === "string") {
             componentSpec = spec[0].slice(1);
@@ -124,8 +120,6 @@ ReactHut.createHut = function (React, config) {
                 spec[1] = propsSpec;
             }
         }
-
-
 
 
         return factory.apply(React, spec);
