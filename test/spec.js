@@ -200,7 +200,7 @@ describe("react-hut", () => {
                 verifyTree(H(<div/>), <div/>);
             });
 
-            it("should be possible to nest calls to H", () => {
+            it("should be possible to mix calls to H with JSX", () => {
                 verifyTree(H(
                     ":div.parent",
                         <div/>,
