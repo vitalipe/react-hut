@@ -1,5 +1,7 @@
 // class-lists 1.0.0 by Juan Maiz Lulkin (aka @joaomilho) MIT
 // https://github.com/joaomilho/class-lists.git
+
+/* istanbul ignore next */
 ReactHut.classLists =  function() {
     var classes = []
     var module = arguments[0].constructor === Object

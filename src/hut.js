@@ -80,8 +80,8 @@ ReactHut.createHut = function (React, config) {
                 throw new Error("component transform should return an array or nothing, got: " + typeof spec);
         }
 
-        if (classLists && spec[1] && spec[1].className)
-            if (!typeof spec[1].className !== "string")
+        // builtin classLists transform
+        if (classLists && spec[1] && spec[1].className && !typeof spec[1].className !== "string")
                 spec[1].className = classLists(spec[1].className);
 
 
