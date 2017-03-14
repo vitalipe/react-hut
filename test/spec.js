@@ -73,14 +73,12 @@ describe("react-hut", () => {
 
             it("should render root element with props and children", () => {
                 verifyTree(H(
-                    [
-                        CustomElement, {value: "demo"},
-                        [
-                            [":div", {}, []],
-                            [":div", {}, []]
-                        ]
+                    [CustomElement, {value: "demo"},
+                        [":div", {}, []],
+                        [":div", {}, []]
+                    ]),
 
-                    ]), <CustomElement value="demo">
+                    <CustomElement value="demo">
                     <div />
                     <div />
                 </CustomElement>);
@@ -88,13 +86,13 @@ describe("react-hut", () => {
 
             it("should render child elements", () => {
                 verifyTree(H(
-                    [
-                        CustomElement, {},
-                        [
-                            [":header", {className: "header"}, []],
-                            [":div", {className: "content"}, []]
-                        ]
-                    ]),
+
+                    [CustomElement, {},
+                        [":header", {className: "header"}, []],
+                        [":div", {className: "content"}, []]]
+
+
+                    ),
                     <CustomElement>
                         <header className="header"/>
                         <div className="content"/>
@@ -133,45 +131,33 @@ describe("react-hut", () => {
 
             it("should be possible to mix literals with child components", () => {
                 verifyTree(H(
-                    [
-                        CustomElement, {},
-                        [
-                            [":span", {className : "s1"}],
-                            "I'm a simple string ",
-                            "answer is: ",
-                            42,
-                            [":span", {className : "s2"}]
-                        ]
+                    [CustomElement, {},
+                        [":span", {className : "s1"}],
+                        "I'm a simple string ", "answer is: ", 42,
+                        [":span", {className : "s2"}]]
 
-                    ]), <CustomElement>
+                ), <CustomElement>
                         <span className="s1" />{["I'm a simple string ", "answer is: ", 42]}<span className="s2" />
                     </CustomElement>);
             });
 
             it("should render deeply nested child elements", () => {
                 verifyTree(H(
-                    [
-                        CustomElement, {},
-                        [
-                            [":header", {className: "header"},
-                                [
-                                    [":h1", {}, "main-title"],
-                                    [":h2", {}, "sub-title"],
-                                    [":h3", {}, "sub-sub-title"]
-                                ]
+                    [CustomElement, {},
+                        [":header", {className: "header"},
+                            [
+                                [":h1", {key : 1}, "main-title"],
+                                [":h2", {key : 2}, "sub-title"]
                             ],
+                            [":h3", {}, "sub-sub-title"]],
 
-                            [":div", {className: "content"},
-                                [
-                                    [":label", {}, "content"]
-                                ]
-                            ]
-                        ]
-                    ]),
+                        [":div", {className: "content"},
+                            [":label", {}, "content"]]]),
+
                     <CustomElement>
                         <header className="header">
-                            <h1>main-title</h1>
-                            <h2>sub-title</h2>
+                            <h1 key={1}>main-title</h1>
+                            <h2 key={2}>sub-title</h2>
                             <h3>sub-sub-title</h3>
                         </header>
                         <div className="content">
@@ -392,10 +378,8 @@ describe("react-hut", () => {
             it("should unpack deeply nested single child elements", () => {
                 verifyTree(H(
                     [":div", {className: "demo"},
-                        [
-                            [":span", {className: "one"}, "one"],
-                            [[[[[[":span", {className: "two"}, "two"]]]]]]
-                        ]
+                        [":span", {className: "one"}, "one"],
+                        [[[[[[":span", {className: "two"}, "two"]]]]]]
                     ]
                 ), <div className="demo">
                     <span className="one">one</span>
@@ -408,17 +392,17 @@ describe("react-hut", () => {
                     [":div", {className: "demo"},
                         [
 
-                            [":span", {className: "one"}, "one"],
+                            [":span", {key : 0, className: "one"}, "one"],
                             [[[[[
-                                [":span", {className: "two"}, "two"]
+                                [":span", {key : 1, className: "two"}, "two"]
                             ]]]]],
 
                             [
                                 [
-                                    [":div"], [":span"]
+                                    [":div", {key : 2}], [":span", {key : 3}]
                                 ],
                                 [[[[
-                                    [":span", {className: "three"}, "3"]
+                                    [":span", {className: "three", key : 4}, "3"]
                                 ]]]]
                             ]
 
@@ -437,7 +421,7 @@ describe("react-hut", () => {
             it("should not try to parse nested data that doesn't look like a component", () => {
                 verifyTree(H([":div", {className: "demo"}, [
 
-                    [":span", {className: "one"}, "one"],
+                    [":span", {key : "moo", className: "one"}, "one"],
                     [["raw", " ", "data", " ", "string"]]
 
                 ]]), <div className="demo">
@@ -448,12 +432,12 @@ describe("react-hut", () => {
 
             it("should still parse mixed nested data that looks like a component", () => {
                 verifyTree(H(
-                    [":div", {className: "demo"},
+                    [":div", {key : 0, className: "demo"},
                         [
-                            [":span", {className: "one"}, "one"],
+                            [":span", {key : 1, className: "one"}, "one"],
                             [
                                 ["raw", " ", "data", " ", "string"],
-                                [":ul", {className : "with-child"}, [[":li"]]]
+                                [":ul", {key : 2, className : "with-child"}, [[":li"]]]
                             ]
                         ]
                     ]
@@ -466,6 +450,7 @@ describe("react-hut", () => {
                     </ul>
                 </div>);
             });
+
         });
 
         describe("#shorthand notation", () => {
@@ -474,9 +459,7 @@ describe("react-hut", () => {
 
                 verifyTree(H(
                     [":div", {className: "demo"},
-                        [
                             [CustomElement], [":ul"]
-                        ]
                     ]),
 
                     <div className="demo">
@@ -485,18 +468,14 @@ describe("react-hut", () => {
                     </div>);
             });
 
-
             it("should be possible to omit children", () => {
 
                 verifyTree(H(
                     [":div", {className: "demo"},
-                        [
-                            [CustomElement, {value: "v"}],
-                            [":div", {className: "foo"}],
-                            [":ul"]
-                        ]
-
-                    ]),
+                        [CustomElement, {value: "v"}],
+                        [":div", {className: "foo"}],
+                        [":ul"]]
+                    ),
 
                     <div className="demo">
                         <CustomElement value="v"/>
@@ -514,16 +493,15 @@ describe("react-hut", () => {
 
             it("should be possible to omit props but still provide children", () => {
 
-                verifyTree(H([
-                        ":div",
-                        [
+                verifyTree(H([":div",
+
                             [CustomElement, {value: "v"}],
                             [":div",
                                 [
                                     [":span", "value"]
                                 ]
                             ]
-                        ]
+
                     ]),
 
                     <div>
@@ -536,14 +514,13 @@ describe("react-hut", () => {
 
             it("should be possible to mix shorthand notation with normal notation", () => {
 
-                verifyTree(H([
-                        ":div", {className: "demo"},
-                        [
-                            [":div"],
-                            [":div", {className: "foo"}, []],
-                            [":h1", "title"],
-                            [":span"]
-                        ]
+                verifyTree(H(
+                    [":div", {className: "demo"},
+                        [":div"],
+                        [":div", {className: "foo"}, []],
+                        [":h1", "title"],
+                        [":span"]
+
                     ]),
 
                     <div className="demo">
@@ -569,6 +546,8 @@ describe("react-hut", () => {
                 verifyTree(H([":div.panel", {className : "my"}]), <div className="my panel" />);
             });
         });
+
+
     });
 
     describe("#component transform", () => {
@@ -577,15 +556,13 @@ describe("react-hut", () => {
             let transform = sinon.stub();
             let H = reactHut.createHut(React, {transform});
 
-            H([":div",
-                [
-                    [":ul", [
+            H(
+                [":div",
+                    [":ul",
                         [":li"],
                         [":li"],
-                        [":li"]
-                    ]]
-                ]
-            ]);
+                        [":li"]]]
+            );
 
             assert.callCount(transform, 5);
         });
@@ -626,16 +603,16 @@ describe("react-hut", () => {
         });
 
         it("should be possible to modify children before they are resolved", () => {
-            let transform = ([e, p, children]) => (children || []).forEach(c => { if (c[0] === ":fake") c[0] = ":li" });
+            let transform = ([e, p, ...children]) => (children || []).forEach(c => { if (c[0] === ":fake") c[0] = ":li" });
             let H = reactHut.createHut(React, {transform});
 
 
             verifyTree(H(
-                ":ul", [
+                ":ul",
                     [":fake"],
                     [":fake"],
                     [":fake"]
-                ]), <ul>
+                ), <ul>
                 <li />
                 <li />
                 <li />
@@ -701,4 +678,5 @@ describe("react-hut", () => {
 
         });
     })
+
 });
