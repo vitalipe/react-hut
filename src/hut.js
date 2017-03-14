@@ -68,7 +68,7 @@ ReactHut.createHut = function (React, config) {
         if (fragment.length > 1) {
             i = 0;
 
-            if (isObject(fragment[1])) {
+            if (!isResolved(fragment[1]) && isObject(fragment[1])) {
                 spec[1] =  fragment[1];
                 i = 1;
             }

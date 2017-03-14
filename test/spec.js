@@ -196,6 +196,25 @@ describe("react-hut", () => {
                 verifyTree(list[1], <div className="d2"><span /></div>);
             });
 
+            it("should be possible to pass a React component", () => {
+                verifyTree(H(<div/>), <div/>);
+            });
+
+            it("should be possible to nest calls to H", () => {
+                verifyTree(H(
+                    ":div.parent",
+                        <div/>,
+                        [":span"],
+                        <div/>, [[":span", {key : "0"}], <ul key="1"/>]),
+
+                    <div className="parent">
+                        <div/>
+                        <span />
+                        <div />
+                        {[<span key="0" />, <ul key="1"/>]}
+                    </div>);
+            });
+
         });
 
         describe("#flat children", () => {
