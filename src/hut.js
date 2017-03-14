@@ -23,23 +23,15 @@ ReactHut.createHut = function (React, config) {
         throw new Error("first arg must be React!");
 
 
-    var transformProps = config.propsTransform || {};
-    var transformPropNames = Object.keys(transformProps);
-
-    var componentTransform = (config.componentTransform || null);
-
+    var transform = (config.transform || null);
     var factory = React.createElement;
     var isResolved = React.isValidElement;
-
-    if (ReactHut.classLists && !transformProps.className) {
-        transformProps.className = classListsProxy;
-        transformPropNames.push("className");
-    }
+    var classLists = ReactHut.classLists ? classListsProxy : null;
 
 
     var resolve = function (fragment) {
         var spec = [null, null];
-        var i, propName, componentSpec, propsSpec;
+        var i, componentSpec, propsSpec;
 
         if (!Array.isArray(fragment))
             return fragment;
@@ -77,18 +69,9 @@ ReactHut.createHut = function (React, config) {
                 spec.push(fragment[i]);
         }
 
-        // prop transform
-        if (spec[1])
-            for (i = 0; i < transformPropNames.length; i++) {
-                propName = transformPropNames[i];
-
-                if (spec[1].hasOwnProperty(propName))
-                    spec[1][propName] = transformProps[propName](spec[1][propName]);
-            }
-
         // component transform
-        if (componentTransform) {
-            spec = (componentTransform(spec) || spec);
+        if (transform) {
+            spec = (transform(spec) || spec);
 
             if (isResolved(spec))
                 return spec;
@@ -96,6 +79,11 @@ ReactHut.createHut = function (React, config) {
             if (!Array.isArray(spec))
                 throw new Error("component transform should return an array or nothing, got: " + typeof spec);
         }
+
+        if (classLists && spec[1] && spec[1].className)
+            if (!typeof spec[1].className !== "string")
+                spec[1].className = classLists(spec[1].className);
+
 
         // resolve children
         for (i = 2; i < spec.length; i++)
