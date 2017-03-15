@@ -189,6 +189,18 @@ describe("react-hut", () => {
             it("should be possible to mix calls to H with JSX", () => {
                 verifyTree(H(
                     ":div.parent",
+                    42,
+                    <div/>,
+                    [":span"]),
+
+                    <div className="parent">
+                        42
+                        <div />
+                        <span />
+                    </div>);
+
+                verifyTree(H(
+                    ":div.parent",
                         <div/>,
                         [":span"],
                         <div/>, [[":span", {key : "0"}], <ul key="1"/>]),
@@ -535,7 +547,8 @@ describe("react-hut", () => {
         describe("#inline class-names", () => {
 
             it("should be possible to inline class name with .", () => {
-               verifyTree(H([":div.my-class-name"]), <div className="my-class-name" />);
+                verifyTree(H([":div.my-class-name"]), <div className="my-class-name" />);
+                verifyTree(H([":div.my-class-name", {}]), <div className="my-class-name" />);
             });
 
             it("should be possible to inline multiple class names", () => {

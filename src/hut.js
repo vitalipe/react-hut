@@ -31,7 +31,7 @@ ReactHut.createHut = function (React, config) {
 
     var resolve = function (fragment) {
         var spec = [null, null];
-        var i, componentSpec, propsSpec;
+        var i, componentSpec, inline;
 
         if (!Array.isArray(fragment))
             return fragment;
@@ -49,9 +49,12 @@ ReactHut.createHut = function (React, config) {
             return fragment[0];
 
         // an array of children ?
-        if (!isComponentSpec(fragment[0]))
-            return fragment.map(resolve);
+        if (!isComponentSpec(fragment[0])) {
+            for(i = 0; i < fragment.length; i++)
+                fragment[i] = resolve(fragment[i]);
 
+            return fragment;
+        }
 
         // we use a different array, and copy, because it's faster & simpler..
         spec[0] = fragment[0];
@@ -60,7 +63,7 @@ ReactHut.createHut = function (React, config) {
         if (fragment.length > 1) {
             i = 0;
 
-            if (!isResolved(fragment[1]) && isObject(fragment[1])) {
+            if (isObject(fragment[1]) && !isResolved(fragment[1]) ) {
                 spec[1] =  fragment[1];
                 i = 1;
             }
@@ -92,20 +95,23 @@ ReactHut.createHut = function (React, config) {
 
         // remove ":" from primitive components and inline class names
         if (typeof spec[0] === "string") {
-            componentSpec = spec[0].slice(1);
 
-            componentSpec = componentSpec.split(".");
-            spec[0] = componentSpec.shift();
+            componentSpec = spec[0].split(".");
+            spec[0] = componentSpec[0].slice(1);
 
-            if (componentSpec.length) {
-                propsSpec = (spec[1] || {});
+            if (componentSpec.length > 1) {
+                inline = componentSpec[1];
 
-                if (propsSpec.className)
-                    propsSpec.className =  (propsSpec.className + " " + componentSpec.join(" "));
+                for (i = 2; i < componentSpec.length; i++)
+                    inline += " " + componentSpec[i];
+
+                if (spec[1])
+                    if (spec[1].className)
+                        spec[1].className += " " + inline;
+                    else
+                        spec[1].className = inline;
                 else
-                    propsSpec.className = componentSpec.join(" ");
-
-                spec[1] = propsSpec;
+                    spec[1] = {className : inline};
             }
         }
 
