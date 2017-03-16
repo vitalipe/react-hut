@@ -605,6 +605,13 @@ describe("react-hut", () => {
             verifyTree(H(":span", {style : {}}, []), <div className="moo">mooo!</div>);
         });
 
+        it("should be possible to return null", () => {
+            let transform = ([element]) => element === ":child" ? null : undefined;
+            let H = reactHut.createHut(React, {transform});
+
+            verifyTree(H(":div", [":child"]), <div />);
+        });
+
 
         it("should be called before class-names are inline", () => {
             let transform = ([element]) => assert.equal(element, ":div.panel");

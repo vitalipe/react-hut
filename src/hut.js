@@ -36,7 +36,7 @@ ReactHut.createHut = function (React, config) {
 
     var resolve = function (fragment) {
         var spec = [null, null];
-        var i, componentSpec, inline;
+        var i, componentSpec, inline, transformed;
 
         if (!Array.isArray(fragment))
             return fragment;
@@ -79,7 +79,13 @@ ReactHut.createHut = function (React, config) {
 
         // component transform
         if (transform) {
-            spec = (transform(spec) || spec);
+            transformed = transform(spec);
+
+            if (transformed === null)
+                return null;
+
+            if (transformed)
+                spec = transformed;
 
             if (isResolved(spec))
                 return spec;
