@@ -22,10 +22,10 @@ ReactHut.createHut = function (React, config) {
     if (!React || !React.createElement || !React.isValidElement)
         throw new Error("first arg must be React!");
 
-    Object.keys(config).forEach(function(key) {
+    for (var key in config) {
         if (key !== "transform") // the only config that we support right now..
             throw new Error("you passed: " + key + " in config, that's not supported..");
-    });
+    }
 
 
     var transform = (config.transform || null);
