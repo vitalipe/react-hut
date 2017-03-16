@@ -30,6 +30,12 @@ describe("react-hut", () => {
             assert.throws(() => reactHut.createHut({}));
             assert.throws(() => reactHut.createHut());
         });
+
+        it("should throw error if invalid config keys are passed", () => {
+            assert.throws(() => reactHut.createHut(React, {crap : function () {}}));
+            assert.throws(() => reactHut.createHut(React, {transforrmmmm : function () {}}));
+            assert.throws(() => reactHut.createHut(React, {fake : true}));
+        });
     });
 
     describe("#default hut context", () => {
