@@ -1,4 +1,5 @@
 (function (root, factory) {
+    /* istanbul ignore next */
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an with the same name as the npm module.
         define('react-hut', ['exports'], factory);
@@ -13,6 +14,8 @@
 "use strict";
 // class-lists 1.0.0 by Juan Maiz Lulkin (aka @joaomilho) MIT
 // https://github.com/joaomilho/class-lists.git
+
+/* istanbul ignore next */
 ReactHut.classLists =  function() {
     var classes = []
     var module = arguments[0].constructor === Object
@@ -61,24 +64,21 @@ ReactHut.createHut = function (React, config) {
     if (!React || !React.createElement || !React.isValidElement)
         throw new Error("first arg must be React!");
 
+    for (var key in config) {
+        if (key !== "transform") // the only config that we support right now..
+            throw new Error("you passed: " + key + " in config, that's not supported..");
+    }
 
-    var transformProps = config.propsTransform || {};
-    var transformPropNames = Object.keys(transformProps);
 
-    var componentTransform = (config.componentTransform || null);
-
+    var transform = (config.transform || null);
     var factory = React.createElement;
     var isResolved = React.isValidElement;
-
-    if (ReactHut.classLists && !transformProps.className) {
-        transformProps.className = classListsProxy;
-        transformPropNames.push("className");
-    }
+    var classLists = ReactHut.classLists ? classListsProxy : null;
 
 
     var resolve = function (fragment) {
         var spec = [null, null];
-        var i, propName, componentSpec, propsSpec;
+        var i, componentSpec, inline, transformed;
 
         if (!Array.isArray(fragment))
             return fragment;
@@ -96,9 +96,12 @@ ReactHut.createHut = function (React, config) {
             return fragment[0];
 
         // an array of children ?
-        if (!isComponentSpec(fragment[0]))
-            return fragment.map(resolve);
+        if (!isComponentSpec(fragment[0])) {
+            for(i = 0; i < fragment.length; i++)
+                fragment[i] = resolve(fragment[i]);
 
+            return fragment;
+        }
 
         // we use a different array, and copy, because it's faster & simpler..
         spec[0] = fragment[0];
@@ -107,7 +110,7 @@ ReactHut.createHut = function (React, config) {
         if (fragment.length > 1) {
             i = 0;
 
-            if (isObject(fragment[1])) {
+            if (isObject(fragment[1]) && !isResolved(fragment[1]) ) {
                 spec[1] =  fragment[1];
                 i = 1;
             }
@@ -116,18 +119,15 @@ ReactHut.createHut = function (React, config) {
                 spec.push(fragment[i]);
         }
 
-        // prop transform
-        if (spec[1])
-            for (i = 0; i < transformPropNames.length; i++) {
-                propName = transformPropNames[i];
-
-                if (spec[1].hasOwnProperty(propName))
-                    spec[1][propName] = transformProps[propName](spec[1][propName]);
-            }
-
         // component transform
-        if (componentTransform) {
-            spec = (componentTransform(spec) || spec);
+        if (transform) {
+            transformed = transform(spec);
+
+            if (transformed === null)
+                return null;
+
+            if (transformed)
+                spec = transformed;
 
             if (isResolved(spec))
                 return spec;
@@ -136,6 +136,11 @@ ReactHut.createHut = function (React, config) {
                 throw new Error("component transform should return an array or nothing, got: " + typeof spec);
         }
 
+        // builtin classLists transform
+        if (classLists && spec[1] && spec[1].className && !typeof spec[1].className !== "string")
+                spec[1].className = classLists(spec[1].className);
+
+
         // resolve children
         for (i = 2; i < spec.length; i++)
             spec[i] = resolve(spec[i]);
@@ -143,20 +148,23 @@ ReactHut.createHut = function (React, config) {
 
         // remove ":" from primitive components and inline class names
         if (typeof spec[0] === "string") {
-            componentSpec = spec[0].slice(1);
 
-            componentSpec = componentSpec.split(".");
-            spec[0] = componentSpec.shift();
+            componentSpec = spec[0].split(".");
+            spec[0] = componentSpec[0].slice(1);
 
-            if (componentSpec.length) {
-                propsSpec = (spec[1] || {});
+            if (componentSpec.length > 1) {
+                inline = componentSpec[1];
 
-                if (propsSpec.className)
-                    propsSpec.className =  (propsSpec.className + " " + componentSpec.join(" "));
+                for (i = 2; i < componentSpec.length; i++)
+                    inline += " " + componentSpec[i];
+
+                if (spec[1])
+                    if (spec[1].className)
+                        spec[1].className += " " + inline;
+                    else
+                        spec[1].className = inline;
                 else
-                    propsSpec.className = componentSpec.join(" ");
-
-                spec[1] = propsSpec;
+                    spec[1] = {className : inline};
             }
         }
 
