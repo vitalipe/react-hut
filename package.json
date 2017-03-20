@@ -14,9 +14,9 @@
   },
   "scripts": {
     "watch": "npm-watch",
-    "test-brief": "node build.js dev && mocha -R min --compilers .:test/_jsx-compiler.js test/spec.js || exit 0",
-    "test": "node build.js prod && mocha --compilers .:test/_jsx-compiler.js test/spec.js",
-    "test-cover": "npm run build-dev && istanbul cover node_modules/.bin/_mocha -- --compilers .:test/_jsx-compiler.js test/spec.js --reporter min",
+    "test-brief": "node build.js dev && mocha -R min --compilers .:test/spec/env/_jsx-compiler.js test/spec/*.js || exit 0",
+    "test": "node build.js prod && mocha --compilers .:test/spec/env/_jsx-compiler.js test/spec/*.js",
+    "test-cover": "npm run build-dev && istanbul cover node_modules/.bin/_mocha -- --compilers .:test/spec/env/_jsx-compiler.js test/spec/*.js --reporter min",
     "benchmark": "npm run build-prod && ./node_modules/benchr/bin/benchr test/micro-benchmarks/*",
     "build-prod": "node build.js prod",
     "build-dev": "node build.js dev",
