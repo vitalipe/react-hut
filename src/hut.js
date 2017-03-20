@@ -130,9 +130,15 @@ ReactHut.createHut = function (React, config) {
         return factory.apply(React, spec);
     };
 
-    return function () {
+    var proxy = function () {
         return resolve(Array.prototype.slice.call(arguments));
     };
+
+    proxy.__IS_HUT = true;
+    proxy.__React = React;
+
+
+    return proxy;
 };
 
 
