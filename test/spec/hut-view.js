@@ -2,6 +2,24 @@ const {assert, render, sinon, React, reactHut, mount} = require("./env");
 const {verifyTree} = require("./env").utils;
 
 
+const HutView = reactHut.createHutView(React);
+
+function verifyNoPropAfterCreation(spec, prop) {
+    let spy = sinon.spy();
+    spec.render = function () {
+
+        assert.notProperty(this, prop);
+        spy(); // record call;
+
+        return null;
+    };
+
+    spy.reset();
+    let FakeWidget = HutView(spec);
+    mount(<FakeWidget/>);
+
+    assert.called(spy);
+}
 
 describe("HutView", () => {
 
@@ -49,7 +67,10 @@ describe("HutView", () => {
 
 
     describe("React.createClass() compatibility", () => {
-        let HutView = reactHut.createHutView(React);
+
+        it("should throw an Error when render() is not defined", () => {
+            assert.throws(() => HutView({}));
+        });
 
         it("should be possible to pass props & state like in .createClass() API", () => {
             let My = HutView({
@@ -98,8 +119,6 @@ describe("HutView", () => {
 
 
     describe("render", () => {
-        let HutView = reactHut.createHutView(React);
-
 
         it("should be possible to return react elements (JSX)", () => {
             let My = HutView({ render() {return <div className="moo" />}});
@@ -136,7 +155,6 @@ describe("HutView", () => {
 
 
     describe("shorter props & state", () => {
-        let HutView = reactHut.createHutView(React);
 
         it("should be possible to set default props as 'props : {}' ", () => {
             let My = HutView({
@@ -196,7 +214,6 @@ describe("HutView", () => {
 
 
     describe("lifecycle shortcuts", () => {
-        let HutView = reactHut.createHutView(React);
 
         it("should be possible to pass a `lifecycle` object with methods", () => {
 
@@ -259,23 +276,41 @@ describe("HutView", () => {
         });
 
         it("should not pass `lifecycle` object to the actual component", () => {
-            let spy = sinon.spy();
-            let Widget = HutView({
-                lifecycle : { willMount : function () {}},
-                render() {
+            let spec = {lifecycle : { willMount : function () {}}};
 
-                    assert.notProperty(this, "lifecycle");
-
-                    spy();
-                    return null;
-                }
-            });
-
-            mount(<Widget/>);
-
-            assert.called(spy);
+            verifyNoPropAfterCreation(spec, "lifecycle");
         });
     });
 
+    describe("shouldComponentUpdate() shortcut", () => {
+
+        it("should be possible to alias as 'shouldUpdate()' ", () => {
+            let stub = sinon.stub().returns(true);
+            let My = HutView({
+                shouldUpdate : stub,
+                render() {return null}
+            });
+
+            stub.reset();
+            mount(<My />).setProps({x : "crap"});
+            assert.calledOnce(stub);
+        });
+
+        it("should not pass `shouldUpdate` method to the actual component", () => {
+            let spec = {shouldUpdate : sinon.stub().returns(true) };
+
+            verifyNoPropAfterCreation(spec, "shouldUpdate");
+        });
+
+        it("should throw an Error when shouldUpdate() & shouldComponentUpdate() are both defined", () => {
+            assert.throws(() => HutView({
+                render : sinon.stub().returns(null),
+                shouldUpdate : sinon.stub().returns(true),
+                shouldComponentUpdate : sinon.stub().returns(true)
+            }));
+        });
+
+
+    });
 
 });

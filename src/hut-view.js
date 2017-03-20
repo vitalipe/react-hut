@@ -42,11 +42,19 @@ ReactHut.createHutView = function (ReactOrHut) {
         var lifecycle = spec["lifecycle"];
         var props = spec["props"];
         var state = spec["state"];
+        var shouldUpdateFunc = spec["shouldUpdate"];
 
         delete  spec["lifecycle"];
         delete  spec["props"];
         delete  spec["state"];
+        delete  spec["shouldUpdate"];
 
+        // shouldComponentUpdate shorthand
+        if (shouldUpdateFunc)
+            if (!spec["shouldComponentUpdate"])
+                spec["shouldComponentUpdate"] = shouldUpdateFunc;
+            else
+                throwPropCollisionError("shouldUpdate", "shouldComponentUpdate");
 
         // props shorthand
         if (props)
@@ -78,9 +86,8 @@ ReactHut.createHutView = function (ReactOrHut) {
             });
 
         // render hook
-        spec.render = function () {
-            return H(render.call(this, this.props, this.state))
-        };
+        if (spec["render"])
+            spec["render"] = function () {return H(render.call(this, this.props, this.state))};
 
 
         return React.createClass(spec);
