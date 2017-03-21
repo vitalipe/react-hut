@@ -333,7 +333,7 @@ Besides, I'll just end up inventing [another LISP dialect](https://racket-lang.o
 
 ### Is it tested?
 
-[Yes, you can look at the specs](https://github.com/vitalipe/react-hut/tree/master/test), or run them with `npm test`, and try the todo-mvc demo app.
+Yes, [you can look at the specs](https://github.com/vitalipe/react-hut/tree/master/test/spec), or run them with `npm test`, and try the todo-mvc demo app.
 There are also micro-benchmarks that mostly test performance edge cases (`npm run benchmark`), 
 and 100% test coverage (`npm run test-cover`).
 
