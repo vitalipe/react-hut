@@ -1,4 +1,4 @@
-# react-hut
+# [ :Hut ]
 
 **Hut is a tiny library that will make your React components pretty again!**
 
