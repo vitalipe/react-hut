@@ -12,6 +12,14 @@ var throwPropCollisionError = function (a, b) {
         + a + " & " + b  + "go get some sleep! ;) ");
 };
 
+var wrap = function(func, H, displayName) {
+    var proxy = function () {return H(func.apply(this, arguments))};
+
+    if (displayName)
+        proxy.displayName = displayName;
+
+    return proxy;
+};
 
 ReactHut.createHutView = function (ReactOrHut) {
 
@@ -37,7 +45,16 @@ ReactHut.createHutView = function (ReactOrHut) {
         ["willUnmount", "componentWillUnmount"]];
 
 
-    return function (spec) {
+    return function (displayName, spec) {
+        if (typeof displayName !== "string") {
+            spec = displayName;
+            displayName = null;
+        }
+
+        // function component?
+        if (typeof spec === "function")
+            return wrap(spec, H, displayName);
+
         var render = spec["render"];
         var lifecycle = spec["lifecycle"];
         var props = spec["props"];
@@ -48,6 +65,9 @@ ReactHut.createHutView = function (ReactOrHut) {
         delete  spec["props"];
         delete  spec["state"];
         delete  spec["shouldUpdate"];
+
+        if (displayName)
+            spec["displayName"] = displayName;
 
         // shouldComponentUpdate shorthand
         if (shouldUpdateFunc)

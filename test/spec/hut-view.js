@@ -25,18 +25,11 @@ describe("HutView", () => {
 
 
     describe(".createHutView()", () => {
-        let H = reactHut.createHut(React);
 
-        it("should return a function", () => {
+        it("is a function", () => {
+            let H = reactHut.createHut(React);
             assert.isFunction(reactHut.createHutView(React));
             assert.isFunction(reactHut.createHutView(H));
-        });
-
-        it("should return  a component factory", () => {
-            let HutView = reactHut.createHutView(React);
-            let Component = HutView({render() {return null}});
-
-            assert.doesNotThrow(() => React.createElement(Component));
         });
 
 
@@ -47,10 +40,36 @@ describe("HutView", () => {
             assert.throws(() => reactHut.createHutView(42));
         });
 
+    });
+
+
+    describe("basic usage", () => {
+
+        it("should create components from object specs", () => {
+            let Component = HutView({render() {return null}});
+            assert.doesNotThrow(() => { React.createElement(Component)});
+        });
+
+        it("should create components from function specs", () => {
+            let Component = HutView(() =>  null);
+            assert.doesNotThrow(() => {
+                React.createElement(Component);
+            });
+        });
+
+        it("if first arg is a string then it's the display name", () => {
+            let FunctionComponent = HutView("MyComponent", () => null);
+            let Component = HutView("MyClassComponent", {render() {return null}});
+
+            assert(mount(React.createElement(FunctionComponent)).is("MyComponent"));
+            assert(mount(React.createElement(Component)).is("MyClassComponent"));
+        });
+
         it("should use custom H() when one is passed", () => {
             let H = sinon.spy(reactHut.createHut(React));
             let HutView = reactHut.createHutView(H);
-            let My = HutView({
+
+            let MyClassComponent = HutView({
                 render() {
                     return [":ul",
                         [":li"],
@@ -58,11 +77,19 @@ describe("HutView", () => {
                 }
             });
 
-            H.reset();
-            mount(React.createElement(My));
-            assert.called(H);
-        });
+            let MyFunctionComponent = HutView({
+                render() {
+                    return [":ul",
+                        [":li"],
+                        [":li"]]
+                }
+            });
 
+
+            mount(React.createElement(MyFunctionComponent));
+            mount(React.createElement(MyClassComponent));
+            assert.calledTwice(H);
+        });
     });
 
 
@@ -281,6 +308,7 @@ describe("HutView", () => {
             verifyNoPropAfterCreation(spec, "lifecycle");
         });
     });
+
 
     describe("shouldComponentUpdate() shortcut", () => {
 
