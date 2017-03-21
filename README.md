@@ -10,7 +10,7 @@ The core ideas behind this tiny library are:
 
 0. **Every component tree is data**, and should be treated as such.
 1. **Javascript is better than XML**, and no compile time is better than compile time (in JS).
-2. **Creativity mattes** - creating your own component DSL should be as simple as writing a function.
+2. **Creativity matters** - creating your own component DSL should be as simple as writing a function.
 3. **No crazy ["wormholes"](https://twitter.com/dan_abramov/status/613477261740797952)** - simple data oriented approach, easy to understand, test and debug.
 
 Hut stands for **H**iccup **U**I **T**ree, and half of this library is just that, [Hiccup](https://github.com/weavejester/hiccup) implemented in Javascript.
