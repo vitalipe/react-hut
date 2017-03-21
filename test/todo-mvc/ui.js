@@ -2,27 +2,68 @@
  * Created by vitali on 19/02/19.
  */
 
-(function () {
 
-    let H = ReactHut.createHut(React);
+const H = ReactHut.createHut(React, {
+
+    /*  This is a simple example of a transform function.
+     *  It will insert displayNames to all components with '#' in their name
+     *  (for example [":div#MyApp"] will have the display name "MyApp")
+     */
+    transform([element, props = {}, ...children]) {
+        if (typeof element !== "string")
+            return; // returning undefined will do nothing
+
+        let [name, inlineDisplayName = null] = element.split("#");
+
+        if (inlineDisplayName === null)
+            return;
+
+        let proxy = () => H([name, props, ...children]);
+        proxy.displayName = inlineDisplayName;
+
+        // let's play nice with key names, and keep them at the upper level
+        let {key = null} =(props || {});
 
 
-    let TodoItem = (item) => {
-        return H(
-            [":li", {key : item.id},
-                [":div.view",
-                    [":input.toggle",
+        return (key === null) ? [proxy] : [proxy, {key : key}];
+    }
+});
+
+let HutView = ReactHut.createHutView(H);
+
+
+
+// UI
+((H, HutView) => {
+
+
+
+    /*
+     * HutView() can be used to define function components,
+     * the first (optional) param is the displayName.
+     *
+     * I personally don't use it, I just call H()
+     * before returning, as you can see in the next 2 examples.
+     *
+     */
+    let Header = HutView("Header",
+        ({newItemTitle, onChange, onDone}) => {
+            return (
+                [":header.header",
+                    [":h1", "todos"],
+                    [":input.new-todo",
                         {
-                            type : "checkbox",
-                            checked : item.completed,
-                            onChange : item.toggleCompleted
+                            placeholder : "What needs to be done?",
+                            autoFocus : true,
+                            type : "text",
+                            onChange : e => onChange(e.target.value),
+                            onKeyPress : e => { if (e.key === "Enter") onDone() },
+                            onBlur : onDone,
+                            value : newItemTitle
                         }
-                    ],
-                    [":label", item.title],
-                    [":button.destroy", {onClick : item.destroy}]
-                ]
-            ]);
-    };
+                    ]]);
+        });
+
 
 
     let TodoList = ({todos}) => {
@@ -35,32 +76,26 @@
                         type : "checkbox",
                         checked : false,
                         onChange : () => todos.forEach(item => item.setCompleted(completed))
-                    }
-                ],
-                [":ul.todo-list", todos.map(TodoItem)]]);
+                    }],
+
+                [":ul.todo-list",
+                    todos.map((item) =>
+                        [":li#TodoItem", {key : item.id},
+                            [":div.view",
+                                [":input.toggle",
+                                    {
+                                        type : "checkbox",
+                                        checked : item.completed,
+                                        onChange : item.toggleCompleted }],
+                                [":label", item.title],
+                                [":button.destroy", {onClick : item.destroy}]]])]]
+        );
     };
 
-
-    let Header = ({newItemTitle, onChange, onDone}) => {
-       return H(
-           [":header.header",
-
-               [":h1", "todos"],
-               [":input.new-todo",
-                   {
-                       placeholder : "What needs to be done?",
-                       autoFocus : true,
-                       type : "text",
-                       onChange : e => onChange(e.target.value),
-                       onKeyPress : e => { if (e.key === "Enter") onDone() },
-                       onBlur : onDone,
-                       value : newItemTitle
-                   }
-               ]]);
-    };
 
     let Footer = ({todos}) => {
-        let unfinished = todos.reduce((sum, {completed}) => completed ? sum  : sum + 1  , 0);
+        let unfinished = todos
+            .reduce((sum, {completed}) => completed ? sum  : sum + 1  , 0);
 
         if (todos.length === 0)
             return H(":div");
@@ -75,20 +110,16 @@
     };
 
 
+    let App = HutView({
 
+        displayName : "App",
 
-    let App = React.createClass({
+        props : {store},
+        state : {newTodoTitle : "" },
 
-        getDefaultProps() {
-            return {store};
-        },
-
-        getInitialState() {
-          return {newTodoTitle : "" }
-        },
-
-        componentWillMount() {
-            this.props.store.listen(() => this.forceUpdate(() => null));
+        lifecycle : {
+            willMount() { this.props.store.listen(() => this.forceUpdate(() => null))},
+            willUnmount() {this.props.store.listen(() => null) }
         },
 
         handleTodoAdd() {
@@ -100,18 +131,15 @@
             this.setState({newTodoTitle : ""});
         },
 
-        render() {
-            let {store} = this.props;
+        render({store}, {newTodoTitle}) {
 
-            return H(
+            return (
                 [":section.todoapp",
                     [Header,
                         {
                             onDone : this.handleTodoAdd,
                             onChange : v => this.setState({newTodoTitle : v}),
-                            newItemTitle : this.state.newTodoTitle
-                        }
-                    ],
+                            newItemTitle : newTodoTitle }],
 
                     [TodoList, {todos : store.todos}],
                     [Footer, {todos : store.todos}]]);
@@ -120,9 +148,10 @@
     });
 
 
+
     ReactDOM.render(H(App, {store}), document.querySelector("#root"));
 
-}());
+})(H, HutView);
 
 
 
