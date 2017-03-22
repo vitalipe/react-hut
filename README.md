@@ -30,7 +30,7 @@ Table of Contents
       * [Customizing your Hut](#customizing-your-hut)
          * [Transform API](#transform-api)
   * [**.createHutView()** - Component API](#createhutview---component-api)
-    * [Compatibility `React.createClass()`]()
+    * [Compatibility `React.createClass()`](#compatibility-reactcreateclass)
     * [HutView() with a custom Hut](#hutview-with-a-custom-hut)
     * [Function components & displayName](#function-components--displayname)
 * [F.A.Q](#faq)
