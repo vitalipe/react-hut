@@ -1,0 +1,4 @@
+*/
+build.js
+!dist/react-hut.js
+!dist/react-hut.min.js
