@@ -1,6 +1,6 @@
 {
   "name": "react-hut",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Make your React components pretty again!",
   "main": "dist/react-hut.min.js",
   "watch": {
