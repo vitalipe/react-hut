@@ -21,17 +21,18 @@ The other half is a minimal API for React components, both are independent, but 
 
 Table of Contents
 =================
-* [Hut in 2 Code Samples](#hut-in-2-snippets)
+* [Hut in 2 Code Samples](#hut-in-2-code-samples)
 * [Installation](#installation)
 * [Docs](#docs)  
-  * [**.createHut()** - Hiccup in plain JS](#1-hiccup-in-plain-js-with-createhut)
-    * [ClassName tricks with "class-lists" lib]()
-      * [Building your Hut]()
-      * [Customizing your Hut]()
-         * [Transform API]()
-  * [**.createHutView()** - Component API](#2-concise-component-api-with-createhutview)
-    * [HutView() with a custom Hut]()
-    * [Function components & displayName]()
+  * [**.createHut()** - Hiccup in plain JS](#createhut---hiccup-in-plain-js)
+    * [ClassName tricks with "class-lists" lib](#classname-tricks-with-class-lists-lib)
+      * [Building your Hut](#building-your-hut-in-1-function-call)
+      * [Customizing your Hut](#customizing-your-hut)
+         * [Transform API](#transform-api)
+  * [**.createHutView()** - Component API](#createhutview---component-api)
+    * [Compatibility `React.createClass()`]()
+    * [HutView() with a custom Hut](#hutview-with-a-custom-hut)
+    * [Function components & displayName](#function-components--displayname)
 * [F.A.Q](#faq)
 * [Building &amp; Testing](#building--testing)
 
@@ -132,8 +133,6 @@ As you can see, there are 4 simple rules here:
 3. the ...rest are `children`.
 4. class names can be inlined so they look like CSS selectors.
 
-<br>
-
 #### ClassName tricks with "class-lists" lib
 
 Because class names are very important, Hut comes with the awesome  [class-lists.js](https://github.com/joaomilho/class-lists) lib built-in:
@@ -164,13 +163,15 @@ let MyList = () =>
          [":li", 2])
 ```
 
+<br>
+
 ### Customizing your Hut
 This is where it gets interesting.
 
 For the next example, let's say we want to add a custom property called `hidden` to every component, the current "best practice"
 is to use a [wrapper component](http://reactpatterns.com/#proxy-component) (or some other voodoo).
 
-**But there's a much better way!**
+But there's a much better way!
 
 Because arrays are just data we can easily write a function that will transform this data recursively.
 Our hut has built-in support for this goodness, it's called a.. `transform` function (and it takes care of recursion).
@@ -187,7 +188,7 @@ H(":div",
       [MyListComponent {hidden : state.hidden}])
 ```
 
-**A transform function is just a function that is called on each component definition.**
+__*A transform function is just a function that is called on each component definition.*__
 
 It can alter the component definition, return a new definition, log, or do nothing.  
 
@@ -268,8 +269,10 @@ const MyComponent = HutView({
   }
 });
 ```
-**In practice, `HutView` is just a thin wrapper around `React.createClass`.**
+*In practice, `HutView` is just a thin wrapper around `React.createClass`.*
 
+
+#### Compatibility `React.createClass()`
 HutView() will not restrict you of using `getInitialState()` or `componentDidMount()` 
 for example, but when there is a conflict, it will simply throw an Error.
 
@@ -302,7 +305,7 @@ you just need to wrap it in a function.
 
 
 
-### HutView() with a custom Hut
+#### HutView() with a custom Hut
 When you create yourself a component factory, you can pass it an existing `H` 
 with all your custom transforms, or just `React` and it will create it's own private hut, with blackjack! and... hookers!
 
@@ -319,7 +322,7 @@ const DefaultHutView = ReactHut.createHutView(ReactHut.createHut(React));
 
 ```
 
-### Function components & displayName
+#### Function components & displayName
 
 It's possible to pass a function to `HutView()`:
 ```javascript
