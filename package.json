@@ -1,8 +1,8 @@
 {
   "name": "react-hut",
   "version": "0.1.0",
-  "description": "",
-  "main": "build.js",
+  "description": "Make your React components pretty again!",
+  "main": "dist/react-hut.min.js",
   "watch": {
     "test-brief": {
       "patterns": [
@@ -22,8 +22,12 @@
     "build-dev": "node build.js dev",
     "dist": "node build.js dist"
   },
-  "author": "Vitali Perchonok",
+  "author": "Vitali Perchonok <vitali.pe@gmail.com>",
   "license": "MIT",
+  "repository" : {
+    "type" : "git",
+    "url" : "https://github.com/vitalipe/react-hut.git"},
+
   "devDependencies": {
     "benchr": "^3.2.0",
     "chai": "^3.5.0",
