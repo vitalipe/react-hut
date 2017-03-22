@@ -19,12 +19,28 @@ The other half is a minimal API for React components, both are independent, but 
 **(If you're simply looking for a JS Hiccup implementation as an external DSL, try [React.Hiccup](https://www.npmjs.com/package/react.hiccup))**
 
 
-## Hut in 2 snippets
+Table of Contents
+=================
+* [Hut in 2 Code Samples](#hut-in-2-snippets)
+* [Installation](#installation)
+* [Docs](#docs)  
+  * [**.createHut()** - Hiccup in plain JS](#1-hiccup-in-plain-js-with-createhut)
+    * [ClassName tricks with "class-lists" lib]()
+      * [Building your Hut]()
+      * [Customizing your Hut]()
+         * [Transform API]()
+  * [**.createHutView()** - Component API](#2-concise-component-api-with-createhutview)
+    * [HutView() with a custom Hut]()
+    * [Function components & displayName]()
+* [F.A.Q](#faq)
+* [Building &amp; Testing](#building--testing)
 
-1. Hiccup in plain JS:
+
+## Hut in 2 Code Samples
+
+Hut implements Hiccup in plain JS, with arrays: 
 ```javascript
 const H = ReactHut.createHut(React);
-
 
 // inside any render
 H([":ul",
@@ -33,8 +49,10 @@ H([":ul",
     [":li", 3],
     [":li.last", {hidden : true}, "I have props! and the class-name last"]])
  ```
+<br>
 
-2. Concise component API:
+
+Hut also implements a concise component API, that can be used with (or without) Hiccup:
 ```jsx
 const HutView = ReactHut.createHutView(H || React);
 
@@ -63,7 +81,29 @@ const GreetingWithTimer = HutView({
 
 <br>
 
-## 1. Hiccup in plain JS with `.createHut()` 
+
+## Installation
+
+Hut is a [UMD](https://github.com/umdjs/umd) module, you can use it pretty much in any Javascript environment.
+
+With npm:
+```javascript
+vat ReactHut = require("react-hut");
+```
+<br>
+
+With a script tag, download it form [/dist](https://github.com/vitalipe/react-hut/tree/master/dist) first, then:
+```javascript
+<script src="react-hut.js"></script>
+<script>console.log(ReactHut);<script>
+```
+
+<br>
+
+
+# Docs
+
+## `.createHut()` - Hiccup in plain JS  
 [Hiccup](https://github.com/weavejester/hiccup) is a popular notation (and library) for working with HTML, in Clojure. Hut simply implements Hiccup in plain Javascript.
 
 Here's the list from the example above:
@@ -94,6 +134,8 @@ As you can see, there are 4 simple rules here:
 
 <br>
 
+#### ClassName tricks with "class-lists" lib
+
 Because class names are very important, Hut comes with the awesome  [class-lists.js](https://github.com/joaomilho/class-lists) lib built-in:
 ```javascript
 // Hut with class-lists built-in
@@ -109,7 +151,7 @@ Because class names are very important, Hut comes with the awesome  [class-lists
 (but don't worry, everything can be easily overridden with transforms)
 
 
-### Building your Hut in 1 function call()
+#### Building your Hut in 1 function call()
 
 The ancient Sumerians used clay to create huts, poor bastards, today we have function calls!
 
@@ -153,10 +195,33 @@ Transform functions are really powerful because they allow you to define your ow
 DSL (domain specific language) for components. Think about them as a poor man's macros,
 if Lisp macros are the great pyramids of Giza, a transform is a Sumerian clay hut ;)
 
+#### Transform API
+
+A transform function has the following API:
+```javascript
+function myTransform([element, props, ...children]) {...}
+```
+
+1. `element` -> the string name of a primitive, or a function for custom elements.
+2. `props` -> an object with props, or `null`.
+3. `childen` -> 0 or more children.
+
+To make changes to the component tree, a transform can:
+
+1. return a new array, with a different component definition.
+2. mutate the array the was passed in.
+3. return `null` to indicate that we don't want this element (and children) to be rendered. 
+4. return a react element (`.reateElement()` or `H()`).
+
+
+Your transform function will be called on every component definition, top down recursively, this means that 
+it has full access to its children before they are evaluated.
+
+
 <br>
 <br>
 
-## 2. Concise component API with `.createHutView()`
+## `.createHutView()` - Component API 
 I personally find the new ES6 class components to be too verbose and clunky.
 Especially given that fact that **I never actually had any real use for component inheritance**, even when I implemented
 my own class system in ES5, [to leverage OOP patterns like the template method pattern](http://slides.com/vitaliperchonok/deck#/17/6).
@@ -284,28 +349,6 @@ const MyPureMessage = ({msg}) => H([":div.top", ["label.msg", msg]]);
 
 <br>
 
-## Installation
-
-Hut is a [UMD](https://github.com/umdjs/umd) module, you can use it pretty much in any Javascript environment.
-
-With npm:
-```javascript
-vat ReactHut = require("react-hut");
-```
-<br>
-
-With a script tag, download it form [/dist](https://github.com/vitalipe/react-hut/tree/master/dist) first, then:
-```javascript
-<script src="react-hut.js"></script>
-<script>console.log(ReactHut);<script>
-```
-
-<br>
-
-
-## Writing Transforms
-
-TODO
 
 ## F.A.Q
 
@@ -336,6 +379,8 @@ Besides, I'll just end up inventing [another LISP dialect](https://racket-lang.o
 Yes, [you can look at the specs](https://github.com/vitalipe/react-hut/tree/master/test/spec), or run them with `npm test`, and try the todo-mvc demo app.
 There are also micro-benchmarks that mostly test performance edge cases (`npm run benchmark`), 
 and 100% test coverage (`npm run test-cover`).
+
+Having said that, note that this particular code was never used in production.
 
 
 ### No compile time, isn't it slow?
@@ -399,7 +444,6 @@ It's very easy to customize Hut, just clone the repo, and run:
 > npm run  build-prod  # build with google closure compiler
 > npm run  dist        # build into /dist
 ```
-
 
 
 
